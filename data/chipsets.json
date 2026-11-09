@@ -1,0 +1,97 @@
+[
+  {
+    "id": "b450",
+    "vendor": "amd",
+    "name": "B450",
+    "socket": "AM4",
+    "cpu_support": [
+      { "cpu_generation": "ryzen-2000", "needs_bios_update": false },
+      { "cpu_generation": "ryzen-3000", "needs_bios_update": true },
+      { "cpu_generation": "ryzen-5000", "needs_bios_update": true }
+    ],
+    "source_notes": "PLACEHOLDER seed data written from memory; not checked against AMD's pages.",
+    "verified": false
+  },
+  {
+    "id": "b550",
+    "vendor": "amd",
+    "name": "B550",
+    "socket": "AM4",
+    "cpu_support": [
+      { "cpu_generation": "ryzen-3000", "needs_bios_update": false },
+      { "cpu_generation": "ryzen-5000", "needs_bios_update": false }
+    ],
+    "source_notes": "PLACEHOLDER seed data written from memory; not checked against AMD's pages.",
+    "verified": false
+  },
+  {
+    "id": "b650",
+    "vendor": "amd",
+    "name": "B650",
+    "socket": "AM5",
+    "cpu_support": [
+      { "cpu_generation": "ryzen-7000", "needs_bios_update": false },
+      { "cpu_generation": "ryzen-8000", "needs_bios_update": true },
+      { "cpu_generation": "ryzen-9000", "needs_bios_update": true }
+    ],
+    "source_notes": "PLACEHOLDER seed data written from memory; not checked against AMD's pages.",
+    "verified": false
+  },
+  {
+    "id": "x870",
+    "vendor": "amd",
+    "name": "X870",
+    "socket": "AM5",
+    "cpu_support": [
+      { "cpu_generation": "ryzen-7000", "needs_bios_update": false },
+      { "cpu_generation": "ryzen-8000", "needs_bios_update": false },
+      { "cpu_generation": "ryzen-9000", "needs_bios_update": false }
+    ],
+    "source_notes": "PLACEHOLDER seed data written from memory; not checked against AMD's pages.",
+    "verified": false
+  },
+  {
+    "id": "z390",
+    "vendor": "intel",
+    "name": "Z390",
+    "socket": "LGA1151",
+    "cpu_support": [{ "cpu_generation": "intel-9", "needs_bios_update": false }],
+    "source_notes": "PLACEHOLDER seed data written from memory; not checked against Intel's pages.",
+    "verified": false
+  },
+  {
+    "id": "b660",
+    "vendor": "intel",
+    "name": "B660",
+    "socket": "LGA1700",
+    "cpu_support": [
+      { "cpu_generation": "intel-12", "needs_bios_update": false },
+      { "cpu_generation": "intel-13", "needs_bios_update": true },
+      { "cpu_generation": "intel-14", "needs_bios_update": true }
+    ],
+    "source_notes": "PLACEHOLDER seed data written from memory; not checked against Intel's pages.",
+    "verified": false
+  },
+  {
+    "id": "z790",
+    "vendor": "intel",
+    "name": "Z790",
+    "socket": "LGA1700",
+    "cpu_support": [
+      { "cpu_generation": "intel-12", "needs_bios_update": false },
+      { "cpu_generation": "intel-13", "needs_bios_update": false },
+      { "cpu_generation": "intel-14", "needs_bios_update": true }
+    ],
+    "source_notes": "PLACEHOLDER seed data written from memory; not checked against Intel's pages.",
+    "verified": false
+  },
+  {
+    "id": "z890",
+    "vendor": "intel",
+    "name": "Z890",
+    "socket": "LGA1851",
+    "cpu_support": [{ "cpu_generation": "intel-core-ultra-200", "needs_bios_update": false }],
+    "source_notes": "PLACEHOLDER seed data written from memory; not checked against Intel's pages.",
+    "verified": false
+  }
+]
