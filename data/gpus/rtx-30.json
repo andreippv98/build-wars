@@ -1,0 +1,60 @@
+{
+  "chips": [
+    {
+      "id": "rtx-3080-10gb",
+      "slug": "rtx-3080-10gb",
+      "vendor": "nvidia",
+      "name": "NVIDIA GeForce RTX 3080 10 GB",
+      "series": "RTX 30",
+      "year": 2020,
+      "vram_gb": 10,
+      "vram_type": "GDDR6X",
+      "ref_boost_mhz": 1710,
+      "ref_power_w": 320,
+      "pcie_gen": 4,
+      "pcie_lanes": 16,
+      "high_power_spikes": true,
+      "perf_index": 40,
+      "source_notes": "PLACEHOLDER seed data: specs written from memory, not checked against the manufacturer's page; perf_index is a fake placeholder, not a benchmark.",
+      "verified": false
+    }
+  ],
+  "boards": [
+    {
+      "id": "nvidia-rtx-3080-10gb-founders-edition",
+      "slug": "founders-edition",
+      "chip_id": "rtx-3080-10gb",
+      "maker": "NVIDIA",
+      "series": "Founders Edition",
+      "model": "GeForce RTX 3080 10 GB Founders Edition",
+      "boost_mhz": 1710,
+      "power_w": 320,
+      "conn_8pin": 0,
+      "conn_12v2x6": 1,
+      "length_mm": 285,
+      "slots": 2,
+      "fan_count": 2,
+      "rec_psu_w": 750,
+      "source_notes": "PLACEHOLDER seed data: specs written from memory, not checked against the manufacturer's page.",
+      "verified": false
+    },
+    {
+      "id": "asus-tuf-gaming-rtx-3080-oc",
+      "slug": "asus-tuf-gaming-oc",
+      "chip_id": "rtx-3080-10gb",
+      "maker": "ASUS",
+      "series": "TUF Gaming",
+      "model": "TUF Gaming RTX 3080 OC",
+      "boost_mhz": 1845,
+      "power_w": 350,
+      "conn_8pin": 2,
+      "conn_12v2x6": 0,
+      "length_mm": 306,
+      "slots": 3,
+      "fan_count": 3,
+      "rec_psu_w": 750,
+      "source_notes": "PLACEHOLDER seed data: specs written from memory, not checked against the manufacturer's page.",
+      "verified": false
+    }
+  ]
+}

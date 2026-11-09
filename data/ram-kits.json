@@ -1,0 +1,114 @@
+[
+  {
+    "id": "ddr4-8gb-1x8-2666-cl19",
+    "type": "DDR4",
+    "capacity_gb": 8,
+    "sticks": 1,
+    "speed_mts": 2666,
+    "cas": 19,
+    "voltage": 1.2,
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  },
+  {
+    "id": "ddr4-16gb-2x8-3200-cl16",
+    "type": "DDR4",
+    "capacity_gb": 16,
+    "sticks": 2,
+    "speed_mts": 3200,
+    "cas": 16,
+    "voltage": 1.35,
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  },
+  {
+    "id": "ddr4-16gb-2x8-3600-cl18",
+    "type": "DDR4",
+    "capacity_gb": 16,
+    "sticks": 2,
+    "speed_mts": 3600,
+    "cas": 18,
+    "voltage": 1.35,
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  },
+  {
+    "id": "ddr4-32gb-2x16-3200-cl16",
+    "type": "DDR4",
+    "capacity_gb": 32,
+    "sticks": 2,
+    "speed_mts": 3200,
+    "cas": 16,
+    "voltage": 1.35,
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  },
+  {
+    "id": "ddr4-32gb-4x8-3600-cl16",
+    "type": "DDR4",
+    "capacity_gb": 32,
+    "sticks": 4,
+    "speed_mts": 3600,
+    "cas": 16,
+    "voltage": 1.35,
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  },
+  {
+    "id": "ddr5-16gb-2x8-5200-cl40",
+    "type": "DDR5",
+    "capacity_gb": 16,
+    "sticks": 2,
+    "speed_mts": 5200,
+    "cas": 40,
+    "voltage": 1.25,
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  },
+  {
+    "id": "ddr5-32gb-2x16-6000-cl30",
+    "type": "DDR5",
+    "capacity_gb": 32,
+    "sticks": 2,
+    "speed_mts": 6000,
+    "cas": 30,
+    "voltage": 1.35,
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  },
+  {
+    "id": "ddr5-64gb-2x32-6000-cl30",
+    "type": "DDR5",
+    "capacity_gb": 64,
+    "sticks": 2,
+    "speed_mts": 6000,
+    "cas": 30,
+    "voltage": 1.4,
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  },
+  {
+    "id": "ddr5-32gb-2x16-7200-cl34",
+    "type": "DDR5",
+    "capacity_gb": 32,
+    "sticks": 2,
+    "speed_mts": 7200,
+    "cas": 34,
+    "voltage": 1.4,
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  },
+  {
+    "id": "ddr5-32gb-2x16-6000-cl30-gskill-trident-z5",
+    "type": "DDR5",
+    "capacity_gb": 32,
+    "sticks": 2,
+    "speed_mts": 6000,
+    "cas": 30,
+    "voltage": 1.35,
+    "brand": "G.Skill",
+    "model": "Trident Z5 RGB",
+    "source_notes": "PLACEHOLDER seed data: generic spec-based kit written from memory.",
+    "verified": false
+  }
+]

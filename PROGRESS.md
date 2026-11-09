@@ -35,7 +35,44 @@ build order (v1 code). Milestone 9 (real catalog data) is done by the owner by h
   in milestone 2. `data:import` on merge needs a production database, so it waits for launch.
 - **Subagents:** `.claude/agents/implementer.md` (Sonnet), `.claude/agents/mechanic.md` (Haiku).
 
+### Milestone 2 (catalog)
+
+- **Ids:** every part has a stable text `id` (also the database primary key). `slug` is the URL
+  segment; it equals the id except for GPU boards, whose slug is unique only within their chip
+  (`/gpu/<chip>/<board>`). RAM kits and chipsets have no slug (no page).
+- **File layout:** `data/cpus.json`, `chipsets.json`, `motherboards.json`, `ram-kits.json`,
+  `psus.json` (arrays); `data/gpus/<series>.json` holds `{ chips, boards }`;
+  `data/models/manifest.json` (array, empty for now).
+- **Closed vocabularies:** sockets and CPU generation keys are enums in `lib/schemas/parts.ts`.
+  Adding one is a schema edit, which keeps typos out of hand-entered data.
+- **CPU support lists:** a chipset carries the default list (by generation or by CPU id, each
+  with `needs_bios_update`); a motherboard may carry its own list, which replaces the chipset's.
+  `resolveMotherboard()` produces the effective list. A CPU matched by no entry is unsupported.
+- **Fields added beyond the plan's tables:** CPU `generation`, `base_ghz`, `cache_mb`; CPU
+  `max_mem_speed` is per memory type (`{ "DDR4": 3200, "DDR5": 5600 }`) because 12th to 14th gen
+  Intel differ by type; GPU chip `vram_type` and `high_power_spikes` (drives the 1.4 PSU
+  multiplier, so the list of spiky cards is data, not code); GPU board optional `series` (partner
+  product line, used by 3D model family rules); motherboard `socket` (denormalised, checked
+  against the chipset); RAM `voltage`; `source_notes` + `verified` on every table.
+- **`eps_required`** is the number of 8-pin EPS connectors on the board (1 or 2). PSU `modular`
+  is `full` / `semi` / `none`; `efficiency` is the 80 Plus tier in lowercase.
+- **Import never deletes parts** (saved builds will reference them); it warns about database rows
+  missing from the JSON. `board_cpu_support` is rebuilt on every import. All in one transaction.
+- **Model manifest:** `license`, `author`, `source` are optional until `verified: true`, then
+  required.
+- **Sample data:** 11 CPUs, 11 GPU chips / 22 boards, 8 chipsets, 11 motherboards, 10 RAM kits,
+  10 PSUs. Real product names with specs from memory, all `verified: false`. `perf_index` values
+  are fake multiples of 5; only the two anchors (9800X3D, RTX 5090 = 100) are meaningful.
+- **Subagent definitions** load at session start. In the session that created them, delegate to
+  `general-purpose` with the model set and the definition file named in the brief.
+
 ## Open questions for the owner
+
+- One `verified` flag per record covers both specs and `perf_index`, as in the plan's tables. If
+  you want specs verified separately from the index (likely during milestone 9), say so and I
+  will split it into two flags.
+- The plan counts only 8-pin and 12V-2x6 GPU connectors. Cards with 6-pin connectors have nowhere
+  to record them; fine for now, worth deciding before real data entry.
 
 - No git remote yet. CI only runs once the repo is pushed to GitHub; say when and where.
 - Needed later, not now: Google OAuth client and an email provider for magic links (milestone 7),
