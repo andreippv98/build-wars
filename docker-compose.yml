@@ -1,0 +1,20 @@
+# Local development database only. Port 55433 avoids clashing with other local Postgres instances.
+services:
+  db:
+    image: postgres:17
+    container_name: buildwars-db
+    environment:
+      POSTGRES_USER: buildwars
+      POSTGRES_PASSWORD: buildwars
+      POSTGRES_DB: buildwars
+    ports:
+      - "127.0.0.1:55433:5432"
+    volumes:
+      - buildwars-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U buildwars"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  buildwars-db:

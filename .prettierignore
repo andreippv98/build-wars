@@ -1,0 +1,6 @@
+.next
+node_modules
+pnpm-lock.yaml
+db/migrations
+BuildWars_PLAN_v2.md
+AGENTS.md
