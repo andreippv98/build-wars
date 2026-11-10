@@ -124,6 +124,44 @@ build order (v1 code). Milestone 9 (real catalog data) is done by the owner by h
   port 3100. Playwright's bundled Chromium does not support this Mac's macOS 13, so local runs
   use installed Chrome (`PW_CHANNEL=chrome pnpm test:e2e`); CI uses the bundled browser.
 
+### Milestone 5 (3D scene)
+
+- **Model standard** is `lib/models/standard.ts` (and `docs/model-standard.md` for artists):
+  millimetres; +X toward the case front, +Y up, +Z out of the motherboard toward the viewer;
+  every model is authored in its mounted orientation with its origin on its mount. Attachment
+  nodes: `mount_motherboard`, `mount_psu` (case); `socket_cpu`, `slot_ram_1..4`, `slot_pcie_1`
+  (motherboard); `mount_pcie` (GPU). Effect nodes: `fan_1..3` spin around local Z, `rgb_*`,
+  `label_area`.
+- **Placement is only ever `slot x inverse(mount)`** (`lib/models/snap.ts`, `assemble.ts`). The
+  scene has no coordinates of its own. RAM is one stick model placed per stick (2 sticks on a
+  4-slot board go in slots 2 and 4).
+- **Parametric models are three.js objects built in code**, the same kind of object a `.glb`
+  gives, so one loader path serves both: the parametric model shows at once, a real model is
+  fetched lazily and swapped in, and a failed load leaves the parametric one.
+- **No motherboard chosen:** a translucent neutral ATX placeholder board provides the slots.
+- **Showcase case is procedural** (`buildCaseModel()`), built to the standard with the two
+  mount nodes. It is not a `.glb` file; nobody has modelled one.
+- **Compression is Meshopt, not Draco.** The decoder ships with three.js, so no decoder files
+  have to be hosted. `models:import` produces Meshopt files and a half-detail `lod1` file.
+- **Model files** resolve against `NEXT_PUBLIC_MODELS_BASE_URL` (the CDN later), default
+  `/models` = `public/models/` locally, which is git-ignored.
+- **Upload is not implemented.** `models:import` validates (official glTF validator + the
+  standard's checks), compresses, writes to `public/models/` and prints the manifest entry.
+  The storage provider (Cloudflare R2 or Vercel Blob) is the owner's choice; the write step is
+  one function (`storeModelFiles`) to swap.
+- **Only `verified` manifest entries are used on the public site.** `/dev/models` also shows
+  unverified ones.
+- **`/dev/models` is 404 on the public site** (`proxy.ts`), reachable under `pnpm dev` or with
+  `ENABLE_DEV_PAGES=1`.
+- **Phones (`lowDetail`):** no shadows, pixel ratio capped at 1.5, `lod` model files, shorter
+  camera moves. Reduced-motion users get no slides, camera travel or fan spin.
+- **Scene state for tests** is on `[data-testid=scene]`: `data-parts` (model source per slot),
+  `data-empty`, `data-active-slot`, `data-ghost`, `data-problems`.
+- **Verified with a real file:** a generated sample `.glb` was matched by a family rule,
+  stretched from 285 to 304 mm and snapped onto the PCIe slot in the live scene, then the test
+  manifest entry was removed. The manifest is empty: every part is parametric today.
+- **Static image of a build for share pages** (plan, milestone 7) is not built yet.
+
 ### Owner decisions (2026-11-10)
 
 - **Two verification flags.** `verified` = specs checked against the manufacturer's page (every
@@ -138,4 +176,6 @@ build order (v1 code). Milestone 9 (real catalog data) is done by the owner by h
 
 ## Open questions for the owner
 
-None.
+- **Model storage:** Cloudflare R2 or Vercel Blob for `.glb` files, and its keys, when the first
+  real model is ready. Nothing needs it until then.
+- **Real models:** none exist. The plan treats them as post-launch; say if you want any before.

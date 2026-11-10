@@ -1,16 +1,23 @@
 "use client";
 
 import { OrbitControls } from "@react-three/drei";
-import { useEffect, useMemo } from "react";
-import { Vector3, type Object3D } from "three";
-import type { SlotPart } from "@/lib/build";
-import { placeInCase, ramSlotCount, ramSlotNumbers } from "@/lib/models/assemble";
+import { useCallback, useEffect, useMemo, useRef, type RefObject } from "react";
+import { Vector3, type Box3, type Object3D } from "three";
+import { partId, type SlotPart } from "@/lib/build";
 import { buildCaseModel, buildMotherboardModel } from "@/lib/models/parametric";
 import { modelBounds } from "@/lib/models/snap";
-import { NODES, SLOT_CATEGORY } from "@/lib/models/standard";
-import type { BuildSlot } from "@/lib/schemas";
+import { BUILD_SLOTS, type BuildSlot } from "@/lib/schemas";
 import { useConfigurator } from "../configurator/configurator-provider";
-import { PlacedPart } from "./placed-part";
+import { issueIds } from "../configurator/summary/format";
+import { CameraRig } from "./effects/camera-rig";
+import { FloatingLabel } from "./effects/cpu-label";
+import { EmptySlot } from "./effects/empty-slot";
+import { Ghost } from "./effects/ghost";
+import { computePlacements, frameBox, slotFrames, type SlotFrame } from "./effects/placements";
+import { slotPartId, useSceneState } from "./effects/scene-state";
+import { useReducedMotion } from "./effects/use-reduced-motion";
+import { useRetained } from "./effects/use-retained";
+import { PlacedPart, type PartLook } from "./placed-part";
 import { usePartModel, type PartModel } from "./use-part-model";
 
 /** Which model each filled slot is drawn with; reported to the page for tests and debugging. */
@@ -22,60 +29,104 @@ type SceneOptions = {
   onStatus?: (slot: BuildSlot, source: PartModel["source"] | null) => void;
 };
 
-/** A chosen part: resolves its model and draws it on its slot. RAM is drawn once per stick. */
-function Part<S extends BuildSlot>({
-  slot,
-  part,
-  caseModel,
-  boardModel,
-  lowDetail,
-  onStatus,
-}: {
-  slot: S;
-  part: SlotPart[S];
+type Shared = {
   caseModel: Object3D;
   boardModel: Object3D;
-} & SceneOptions) {
-  const { models } = useConfigurator();
-  const model = usePartModel(slot, part, models, { lowDetail });
-  const object = model?.object;
-  const source = model?.source ?? null;
-  useEffect(() => {
-    onStatus?.(slot, source);
-    return () => onStatus?.(slot, null);
-  }, [onStatus, slot, source]);
+  /** False until the scene has mounted: parts present from the start do not animate in. */
+  settled: RefObject<boolean>;
+  reducedMotion: boolean;
+  lookFor: (slot: BuildSlot) => PartLook;
+};
 
-  const placements = useMemo(() => {
-    if (!object) return [];
-    const category = SLOT_CATEGORY[slot];
-    if (category === "case" || category === "fan") return [];
-    if (slot === "ram") {
-      const sticks = (part as SlotPart["ram"]).sticks;
-      return ramSlotNumbers(sticks, ramSlotCount(boardModel)).flatMap((n) => {
-        const stick = object.clone(true);
-        const matrix = placeInCase(caseModel, boardModel, "ram", stick, NODES.slotRam(n));
-        return matrix ? [{ key: `ram-${n}`, object: stick, matrix }] : [];
-      });
-    }
-    const matrix = placeInCase(caseModel, boardModel, category, object);
-    return matrix ? [{ key: slot, object, matrix }] : [];
-  }, [slot, part, object, caseModel, boardModel]);
+/**
+ * The models of one slot at their places. A part that leaves (replaced or removed) stays in the
+ * scene while it fades out. RAM is drawn once per stick.
+ */
+function PartInstances({
+  slot,
+  part,
+  object,
+  caseModel,
+  boardModel,
+  settled,
+  reducedMotion,
+  lookFor,
+}: Shared & { slot: BuildSlot; part: SlotPart[BuildSlot] | null; object: Object3D | null }) {
+  const id = part ? partId(slot, part as never) : null;
+  const sticks = slot === "ram" && part ? (part as SlotPart["ram"]).sticks : 1;
+  const placements = useMemo(
+    () => (object && id ? computePlacements(slot, id, sticks, object, caseModel, boardModel) : []),
+    [slot, id, sticks, object, caseModel, boardModel],
+  );
+  const { list, drop } = useRetained(placements);
+  const look = lookFor(slot);
 
   return (
     <>
-      {placements.map((p) => (
-        <PlacedPart key={p.key} slot={slot} object={p.object} matrix={p.matrix} />
+      {list.map((item) => (
+        <PlacedPart
+          key={item.key}
+          slot={slot}
+          object={item.object}
+          matrix={item.matrix}
+          settled={settled}
+          reducedMotion={reducedMotion}
+          leaving={item.leaving}
+          onGone={() => drop(item.key)}
+          look={look}
+        >
+          {slot === "cpu" && part && !item.leaving ? (
+            <FloatingLabel object={item.object} text={(part as SlotPart["cpu"]).name} />
+          ) : null}
+        </PlacedPart>
       ))}
     </>
   );
 }
 
+/** A chosen part: resolves its model (parametric first, then the real one) and draws it. */
+function Part({
+  slot,
+  part,
+  lowDetail,
+  onStatus,
+  ...shared
+}: Shared & SceneOptions & { slot: BuildSlot; part: SlotPart[BuildSlot] | null }) {
+  const { models } = useConfigurator();
+  const model = usePartModel(slot, part as never, models, { lowDetail });
+  const source = model?.source ?? null;
+  useEffect(() => {
+    onStatus?.(slot, source);
+    return () => onStatus?.(slot, null);
+  }, [onStatus, slot, source]);
+  return <PartInstances slot={slot} part={part} object={model?.object ?? null} {...shared} />;
+}
+
 /**
- * Everything inside the canvas: lights, the showcase case and the chosen parts, each placed by
- * the attachment nodes of its parent model. No product-specific geometry or coordinates here.
+ * Everything inside the canvas: lights, the showcase case, the chosen parts and the effects
+ * around them (slide-in, ghost preview, empty-slot outlines, problem glow, camera). Parts are
+ * placed by the attachment nodes of their parent model; no product-specific geometry or
+ * coordinates live here.
  */
-export function BuildScene({ lowDetail, onStatus }: SceneOptions) {
-  const { build, models } = useConfigurator();
+export function BuildScene({
+  lowDetail,
+  onStatus,
+  onSlotClick,
+  resetRef,
+}: SceneOptions & {
+  /** Phones: called instead of opening the picker directly. */
+  onSlotClick?: (slot: BuildSlot) => void;
+  /** Filled with a function that eases the camera back to the overview. */
+  resetRef: RefObject<(() => void) | null>;
+}) {
+  const { build, models, evaluation, setActiveSlot } = useConfigurator();
+  const { activeSlot, ghost, problems, empty } = useSceneState();
+  const reducedMotion = useReducedMotion();
+
+  const settled = useRef(false);
+  useEffect(() => {
+    settled.current = true;
+  }, []);
 
   const caseModel = useMemo(() => buildCaseModel(), []);
   const placeholderBoard = useMemo(() => buildMotherboardModel(null), []);
@@ -87,9 +138,17 @@ export function BuildScene({ lowDetail, onStatus }: SceneOptions) {
     onStatus?.("motherboard", boardSource);
     return () => onStatus?.("motherboard", null);
   }, [onStatus, boardSource]);
-  const boardMatrix = useMemo(
-    () => placeInCase(caseModel, boardModel, "motherboard", boardModel),
-    [caseModel, boardModel],
+  const placeholderPlacement = useMemo(
+    () =>
+      computePlacements(
+        "motherboard",
+        "placeholder",
+        1,
+        placeholderBoard,
+        caseModel,
+        placeholderBoard,
+      )[0],
+    [placeholderBoard, caseModel],
   );
 
   // Centre the case on the origin so the camera orbits its middle.
@@ -101,7 +160,53 @@ export function BuildScene({ lowDetail, onStatus }: SceneOptions) {
     };
   }, [caseModel]);
 
-  const shared = { caseModel, boardModel, lowDetail, onStatus };
+  // Where each slot is (from the attachment nodes) and the box its envelope covers.
+  const frames = useMemo(
+    () =>
+      Object.fromEntries(
+        BUILD_SLOTS.map((slot) => [slot, slotFrames(caseModel, boardModel, slot, "fill")]),
+      ) as Record<BuildSlot, SlotFrame[]>,
+    [caseModel, boardModel],
+  );
+  const boxes = useMemo(
+    () =>
+      Object.fromEntries(
+        BUILD_SLOTS.map((slot) => {
+          const box = frameBox(slotFrames(caseModel, boardModel, slot, "all"));
+          return [slot, box ? box.translate(centre.clone().negate()) : null];
+        }),
+      ) as Record<BuildSlot, Box3 | null>,
+    [caseModel, boardModel, centre],
+  );
+  const idsKey = BUILD_SLOTS.map((slot) => slotPartId(build, slot) ?? "").join("|");
+
+  const openSlot = useCallback(
+    (slot: BuildSlot) => (onSlotClick ?? setActiveSlot)(slot),
+    [onSlotClick, setActiveSlot],
+  );
+  // A part with a problem takes the visitor to the message; otherwise it opens its list.
+  const selectPart = useCallback(
+    (slot: BuildSlot) => {
+      const problem = problems[slot];
+      if (!problem) return openSlot(slot);
+      const id = issueIds(evaluation.issues)[problem.issueIndex];
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      onSlotClick?.(slot);
+    },
+    [problems, evaluation.issues, openSlot, onSlotClick],
+  );
+  const lookFor = useCallback(
+    (slot: BuildSlot): PartLook => ({
+      glow: problems[slot]?.severity ?? null,
+      dim: ghost?.slot === slot,
+      outline: activeSlot === slot,
+      onSelect: () => selectPart(slot),
+    }),
+    [problems, ghost, activeSlot, selectPart],
+  );
+
+  const shared: Shared = { caseModel, boardModel, settled, reducedMotion, lookFor };
+  const options = { lowDetail, onStatus };
 
   return (
     <>
@@ -130,29 +235,69 @@ export function BuildScene({ lowDetail, onStatus }: SceneOptions) {
 
       <group position={[-centre.x, -centre.y, -centre.z]}>
         <primitive object={caseModel} />
-        {boardMatrix ? (
+        {!build.motherboard && placeholderPlacement ? (
           <PlacedPart
-            key={boardModel.uuid}
             slot="motherboard"
-            object={boardModel}
-            matrix={boardMatrix}
+            object={placeholderPlacement.object}
+            matrix={placeholderPlacement.matrix}
+            settled={settled}
+            reducedMotion={reducedMotion}
+            slideIn={false}
           />
         ) : null}
-        {build.cpu ? <Part slot="cpu" part={build.cpu} {...shared} /> : null}
-        {build.ram ? <Part slot="ram" part={build.ram} {...shared} /> : null}
-        {build.gpu ? <Part slot="gpu" part={build.gpu} {...shared} /> : null}
-        {build.psu ? <Part slot="psu" part={build.psu} {...shared} /> : null}
+        <PartInstances
+          slot="motherboard"
+          part={build.motherboard ?? null}
+          object={chosenBoard?.object ?? null}
+          {...shared}
+        />
+        <Part slot="cpu" part={build.cpu ?? null} {...options} {...shared} />
+        <Part slot="ram" part={build.ram ?? null} {...options} {...shared} />
+        <Part slot="gpu" part={build.gpu ?? null} {...options} {...shared} />
+        <Part slot="psu" part={build.psu ?? null} {...options} {...shared} />
+
+        {empty.flatMap((slot) =>
+          frames[slot].map((frame) => (
+            <EmptySlot
+              key={`${slot}:${frame.key}`}
+              category={frame.category}
+              matrix={frame.matrix}
+              active={activeSlot === slot}
+              onActivate={() => openSlot(slot)}
+            />
+          )),
+        )}
+
+        {ghost ? (
+          <Ghost
+            key={`${ghost.slot}:${ghost.id}`}
+            slot={ghost.slot}
+            id={ghost.id}
+            caseModel={caseModel}
+            boardModel={boardModel}
+          />
+        ) : null}
       </group>
 
       <OrbitControls
         makeDefault
         enablePan={false}
-        minDistance={radius * 1.1}
+        minDistance={radius * 0.3}
         maxDistance={radius * 4}
         minPolarAngle={Math.PI * 0.15}
         maxPolarAngle={Math.PI * 0.6}
         minAzimuthAngle={-Math.PI * 0.45}
         maxAzimuthAngle={Math.PI * 0.45}
+      />
+      <CameraRig
+        boxes={boxes}
+        activeSlot={activeSlot}
+        idsKey={idsKey}
+        lowDetail={lowDetail}
+        reduced={reducedMotion}
+        minDistance={radius * 0.3}
+        maxDistance={radius * 4}
+        resetRef={resetRef}
       />
     </>
   );

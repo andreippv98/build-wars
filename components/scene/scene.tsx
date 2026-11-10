@@ -1,11 +1,20 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Component, useCallback, useState, useSyncExternalStore, type ReactNode } from "react";
+import {
+  Component,
+  useCallback,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import type { BuildSlot } from "@/lib/schemas";
 import { ScenePlaceholder } from "../configurator/scene-placeholder";
 import { BUILD_SLOTS } from "@/lib/schemas";
 import { BuildScene, type SceneStatus } from "./build-scene";
+import { problemsAttribute } from "./effects/problems";
+import { useSceneState } from "./effects/scene-state";
 
 /** True when the browser can create a WebGL context. Checked once. */
 let webglSupport: boolean | undefined;
@@ -46,6 +55,8 @@ export function Scene({
   onSlotClick?: (slot: BuildSlot) => void;
 }) {
   const webgl = useSyncExternalStore(noop, hasWebGL, () => null);
+  const { activeSlot, ghost, problems, empty } = useSceneState();
+  const resetView = useRef<(() => void) | null>(null);
   const fallback = <ScenePlaceholder onSlotClick={onSlotClick} />;
   const [status, setStatus] = useState<SceneStatus>({});
   const onStatus = useCallback<NonNullable<Parameters<typeof BuildScene>[0]["onStatus"]>>(
@@ -72,6 +83,10 @@ export function Scene({
         data-testid="scene"
         data-renderer="webgl"
         data-parts={parts}
+        data-active-slot={activeSlot ?? ""}
+        data-ghost={ghost ? `${ghost.slot}:${ghost.id}` : ""}
+        data-problems={problemsAttribute(problems)}
+        data-empty={empty.join(" ")}
         className="relative h-full w-full"
       >
         <Canvas
@@ -80,8 +95,21 @@ export function Scene({
           camera={{ position: [260, 120, 1080], fov: 36, near: 10, far: 6000 }}
           gl={{ antialias: true, powerPreference: "high-performance" }}
         >
-          <BuildScene lowDetail={lowDetail} onStatus={onStatus} />
+          <BuildScene
+            lowDetail={lowDetail}
+            onStatus={onStatus}
+            onSlotClick={onSlotClick}
+            resetRef={resetView}
+          />
         </Canvas>
+        <button
+          type="button"
+          data-testid="scene-reset-view"
+          onClick={() => resetView.current?.()}
+          className="absolute top-3 right-3 rounded-md border border-white/15 bg-black/50 px-2.5 py-1 text-xs font-medium text-zinc-200 backdrop-blur-sm hover:bg-black/70 focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none"
+        >
+          Reset view
+        </button>
       </div>
     </SceneBoundary>
   );

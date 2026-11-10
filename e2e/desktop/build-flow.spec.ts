@@ -17,9 +17,10 @@ test.describe("configurator on desktop", () => {
     await expect(page.getByTestId("part-picker")).toBeVisible();
     await expect(page.getByTestId("scene")).toBeVisible();
     await expect(page.getByTestId("summary-panel")).toBeVisible();
-    for (const slot of SLOTS) {
-      await expect(page.getByTestId(`scene-slot-${slot}`)).toHaveAttribute("data-state", "empty");
-    }
+    await expect(page.getByTestId("scene")).toHaveAttribute(
+      "data-empty",
+      "cpu gpu ram motherboard psu",
+    );
     await expect(page.getByTestId("score-missing")).toBeVisible();
     await expect(page.getByTestId("build-score")).toHaveCount(0);
   });
@@ -65,9 +66,7 @@ test.describe("configurator on desktop", () => {
     await expect(page.getByTestId("headroom-bar")).toHaveAttribute("data-status", "green");
     await expect(page.getByTestId("issue-error")).toHaveCount(0);
     await expect(page.getByTestId("issue-warning")).toHaveCount(0);
-    for (const slot of SLOTS) {
-      await expect(page.getByTestId(`scene-slot-${slot}`)).toHaveAttribute("data-state", "filled");
-    }
+    await expect(page.getByTestId("scene")).toHaveAttribute("data-empty", "");
   });
 
   test("a build URL survives a reload", async ({ page }) => {
@@ -91,7 +90,7 @@ test.describe("configurator on desktop", () => {
     const urlBefore = page.url();
     // aria-disabled rows make a plain click wait forever, so force it.
     await blocked.click({ force: true });
-    await expect(page.getByTestId("scene-slot-motherboard")).toHaveAttribute("data-state", "empty");
+    await expect(page.getByTestId("scene")).toHaveAttribute("data-empty", /motherboard/);
     expect(page.url()).toBe(urlBefore);
     await expect(page.getByTestId("picker-row-asus-rog-strix-x870-a-gaming-wifi")).toHaveAttribute(
       "data-blocked",
@@ -109,7 +108,7 @@ test.describe("configurator on desktop", () => {
     }
     await expect(page.getByTestId("score-not-final")).toBeVisible();
     await expect(page.getByTestId("headroom-bar")).toHaveAttribute("data-status", "red");
-    await expect(page.getByTestId("scene-slot-psu")).toHaveAttribute("data-problem", "error");
+    await expect(page.getByTestId("scene")).toHaveAttribute("data-problems", /psu:error/);
   });
 
   test("an older CPU on a board that needs a BIOS update gives a warning", async ({ page }) => {
@@ -134,8 +133,11 @@ test.describe("configurator on desktop", () => {
 
     await page.getByTestId("clear-build").click();
     await expect.poll(() => new URL(page.url()).search).toBe("");
+    await expect(page.getByTestId("scene")).toHaveAttribute(
+      "data-empty",
+      "cpu gpu ram motherboard psu",
+    );
     for (const slot of SLOTS) {
-      await expect(page.getByTestId(`scene-slot-${slot}`)).toHaveAttribute("data-state", "empty");
       await expect(page.getByTestId(`summary-slot-${slot}`)).toHaveAttribute(
         "data-filled",
         "false",
@@ -145,9 +147,10 @@ test.describe("configurator on desktop", () => {
 
   test("unknown or malformed ids in the URL do not crash the page", async ({ page }) => {
     await openBuild(page, "/build?cpu=does-not-exist&gpu=%3Cscript%3E");
-    for (const slot of SLOTS) {
-      await expect(page.getByTestId(`scene-slot-${slot}`)).toHaveAttribute("data-state", "empty");
-    }
+    await expect(page.getByTestId("scene")).toHaveAttribute(
+      "data-empty",
+      "cpu gpu ram motherboard psu",
+    );
     await expect(page.getByTestId("score-missing")).toBeVisible();
   });
 
