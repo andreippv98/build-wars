@@ -91,6 +91,39 @@ build order (v1 code). Milestone 9 (real catalog data) is done by the owner by h
   wrong, to avoid two errors for one mistake.
 - **Issue order:** errors, warnings, info; within a severity, rule order.
 
+### Milestone 4 (configurator)
+
+- **URL state:** `/build?cpu=<id>&gpu=<gpu board id>&ram=<id>&mb=<id>&psu=<id>`, fixed order.
+  The URL is the single source of truth for an unsaved build (`history.replaceState` on every
+  change); unknown or malformed ids are ignored. Other query parameters are preserved, so a
+  later `?challenge=` fits in.
+- **The site serves the catalog from the JSON files, not from the database.** `getCatalog()`
+  (`lib/catalog/server.ts`) reads `data/` on the server under `"use cache"`, so `/build` is
+  static and needs no database at build time or in CI. The database copy from `data:import`
+  exists so saved builds can reference parts (milestone 7). The whole catalog (minus the model
+  manifest) is sent to the browser so search, filters and the engine run locally.
+- **Shared state:** `useConfigurator()` (`components/configurator/configurator-provider.tsx`) is
+  the one contract between picker, summary, scene and layout: selection, build, evaluation,
+  select / remove / clear, `activeSlot`, `preview` (hovered part, for the ghost) and
+  `blockersFor`.
+- **Greyed-out parts:** a part is blocked when adding it would cause an error involving its own
+  slot. "No graphics output" is not a blocker (it only means a GPU is still missing).
+- **Breakpoint:** three columns from 1024 px; below that the phone layout (scene 45dvh, slot
+  list, parts sheet, sticky score bar that opens the summary sheet). The panels are mounted once,
+  chosen in JS, and nothing renders until the width is known.
+- **Picker:** filters and sort are native selects (better on phones); 60 rows at a time with
+  "Show more"; the whole picker scrolls as one list.
+- **Scene placeholder** is a data-driven 2D SVG side view. It becomes the WebGL fallback in
+  milestone 5.
+- **Save button** is present but disabled until accounts exist (milestone 7). Share copies the
+  build URL.
+- **No ad slot on `/build`.** The plan forbids ads in the picker, over the scene and between
+  score and warnings, which leaves no room on this page; slots get reserved on part pages
+  (milestone 6).
+- **Playwright:** 12 tests, `desktop` and `phone` projects, served from a production build on
+  port 3100. Playwright's bundled Chromium does not support this Mac's macOS 13, so local runs
+  use installed Chrome (`PW_CHANNEL=chrome pnpm test:e2e`); CI uses the bundled browser.
+
 ### Owner decisions (2026-11-10)
 
 - **Two verification flags.** `verified` = specs checked against the manufacturer's page (every

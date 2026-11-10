@@ -39,18 +39,19 @@ are not sure about. `cacheComponents` is on in `next.config.ts`.
 
 ## Layout
 
-| Path                 | Contents                                                                                                       |
-| -------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `app/`               | Routes only. Pages are server components unless they need interactivity.                                       |
-| `components/ui/`     | shadcn/ui primitives (generated; do not hand-edit without reason)                                              |
-| `components/<area>/` | Feature components, e.g. `configurator/`, `scene/`                                                             |
-| `lib/schemas/`       | Zod schemas and the types inferred from them. The single definition of every part type and the model manifest. |
-| `lib/engine/`        | Pure functions: `checkCompatibility`, `estimatePower`, `scoreBuild`; `config.ts` for tunables                  |
-| `lib/` (other)       | Server and shared helpers                                                                                      |
-| `db/`                | `schema.ts` (Drizzle), `index.ts` (`getDb()`), `migrations/`                                                   |
-| `data/`              | Catalog JSON (one file per part type, per series for GPUs), `data/models/` manifest                            |
-| `scripts/`           | CLI scripts run with `tsx` (`data:validate`, `data:import`, `models:import`)                                   |
-| `e2e/`               | Playwright tests                                                                                               |
+| Path                 | Contents                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `app/`               | Routes only. Pages are server components unless they need interactivity.                                                 |
+| `components/ui/`     | shadcn/ui primitives (generated; do not hand-edit without reason)                                                        |
+| `components/<area>/` | Feature components, e.g. `configurator/`, `scene/`                                                                       |
+| `lib/schemas/`       | Zod schemas and the types inferred from them. The single definition of every part type and the model manifest.           |
+| `lib/engine/`        | Pure functions: `checkCompatibility`, `estimatePower`, `scoreBuild`; `config.ts` for tunables                            |
+| `lib/build/`         | Build state shared by UI and server: selection and URL encoding, catalog index, candidate checks, labels, picker filters |
+| `lib/` (other)       | Server and shared helpers                                                                                                |
+| `db/`                | `schema.ts` (Drizzle), `index.ts` (`getDb()`), `migrations/`                                                             |
+| `data/`              | Catalog JSON (one file per part type, per series for GPUs), `data/models/` manifest                                      |
+| `scripts/`           | CLI scripts run with `tsx` (`data:validate`, `data:import`, `models:import`)                                             |
+| `e2e/`               | Playwright tests                                                                                                         |
 
 ## Conventions
 
@@ -67,15 +68,16 @@ are not sure about. `cacheComponents` is on in `next.config.ts`.
 
 ## Commands
 
-| Command                                      | Purpose                                                       |
-| -------------------------------------------- | ------------------------------------------------------------- |
-| `pnpm dev`                                   | Dev server                                                    |
-| `pnpm check`                                 | Lint + typecheck + unit tests. Must pass before every commit. |
-| `pnpm lint` / `pnpm typecheck` / `pnpm test` | Individually                                                  |
-| `pnpm format`                                | Prettier write                                                |
-| `pnpm build`                                 | Production build                                              |
-| `pnpm db:up` / `pnpm db:down`                | Local Postgres in Docker (port 55433)                         |
-| `pnpm db:generate` / `pnpm db:migrate`       | Drizzle migrations                                            |
+| Command                                      | Purpose                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                   | Dev server                                                                                  |
+| `pnpm check`                                 | Lint + typecheck + unit tests. Must pass before every commit.                               |
+| `pnpm lint` / `pnpm typecheck` / `pnpm test` | Individually                                                                                |
+| `pnpm format`                                | Prettier write                                                                              |
+| `pnpm build`                                 | Production build                                                                            |
+| `pnpm test:e2e`                              | Playwright (builds and serves on port 3100). On this Mac: `PW_CHANNEL=chrome pnpm test:e2e` |
+| `pnpm db:up` / `pnpm db:down`                | Local Postgres in Docker (port 55433)                                                       |
+| `pnpm db:generate` / `pnpm db:migrate`       | Drizzle migrations                                                                          |
 
 ## How work is organised
 
