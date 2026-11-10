@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
@@ -6,6 +9,9 @@ export default function Home() {
         Assemble a desktop PC from real parts, check that they work together, and see how strong the
         build is.
       </p>
+      <Link href="/build" className={buttonVariants({ size: "lg" })}>
+        Start a build
+      </Link>
     </main>
   );
 }
