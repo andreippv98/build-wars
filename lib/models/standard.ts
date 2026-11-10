@@ -27,6 +27,9 @@ import type { BuildSlot, ModelCategory } from "@/lib/schemas";
  *   psu          origin = rear bottom corner on the motherboard-tray side. Spans +X (length),
  *                +Y (height), +Z (width).
  *
+ * Optional effect nodes: `fan_1..3` are the parents of fan blades and spin around their own
+ * local Z axis; `label_area` marks where the name is printed; `rgb_*` meshes may glow.
+ *
  * Attachment nodes are empty nodes (no mesh). Their position AND rotation matter: a child is
  * placed so its mount node coincides with the parent's slot node.
  */
