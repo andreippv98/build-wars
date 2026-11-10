@@ -47,3 +47,6 @@ next-env.d.ts
 
 # locally imported 3D models (production files live in object storage)
 /public/models/
+
+# raw 3D model files waiting for `pnpm models:import` (never committed)
+/models-src/
