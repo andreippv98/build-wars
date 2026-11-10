@@ -1,7 +1,7 @@
 "use client";
 
 import { OrbitControls } from "@react-three/drei";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Vector3, type Object3D } from "three";
 import type { SlotPart } from "@/lib/build";
 import { placeInCase, ramSlotCount, ramSlotNumbers } from "@/lib/models/assemble";
@@ -11,9 +11,16 @@ import { NODES, SLOT_CATEGORY } from "@/lib/models/standard";
 import type { BuildSlot } from "@/lib/schemas";
 import { useConfigurator } from "../configurator/configurator-provider";
 import { PlacedPart } from "./placed-part";
-import { usePartModel } from "./use-part-model";
+import { usePartModel, type PartModel } from "./use-part-model";
 
-type SceneOptions = { lowDetail: boolean };
+/** Which model each filled slot is drawn with; reported to the page for tests and debugging. */
+export type SceneStatus = Partial<Record<BuildSlot, PartModel["source"]>>;
+
+type SceneOptions = {
+  lowDetail: boolean;
+  /** Called when a slot's model source changes; null when the slot empties. */
+  onStatus?: (slot: BuildSlot, source: PartModel["source"] | null) => void;
+};
 
 /** A chosen part: resolves its model and draws it on its slot. RAM is drawn once per stick. */
 function Part<S extends BuildSlot>({
@@ -22,6 +29,7 @@ function Part<S extends BuildSlot>({
   caseModel,
   boardModel,
   lowDetail,
+  onStatus,
 }: {
   slot: S;
   part: SlotPart[S];
@@ -31,6 +39,11 @@ function Part<S extends BuildSlot>({
   const { models } = useConfigurator();
   const model = usePartModel(slot, part, models, { lowDetail });
   const object = model?.object;
+  const source = model?.source ?? null;
+  useEffect(() => {
+    onStatus?.(slot, source);
+    return () => onStatus?.(slot, null);
+  }, [onStatus, slot, source]);
 
   const placements = useMemo(() => {
     if (!object) return [];
@@ -61,7 +74,7 @@ function Part<S extends BuildSlot>({
  * Everything inside the canvas: lights, the showcase case and the chosen parts, each placed by
  * the attachment nodes of its parent model. No product-specific geometry or coordinates here.
  */
-export function BuildScene({ lowDetail }: SceneOptions) {
+export function BuildScene({ lowDetail, onStatus }: SceneOptions) {
   const { build, models } = useConfigurator();
 
   const caseModel = useMemo(() => buildCaseModel(), []);
@@ -69,6 +82,11 @@ export function BuildScene({ lowDetail }: SceneOptions) {
   // The board in use, real or placeholder: everything on the board is placed relative to it.
   const chosenBoard = usePartModel("motherboard", build.motherboard ?? null, models, { lowDetail });
   const boardModel = chosenBoard?.object ?? placeholderBoard;
+  const boardSource = chosenBoard?.source ?? null;
+  useEffect(() => {
+    onStatus?.("motherboard", boardSource);
+    return () => onStatus?.("motherboard", null);
+  }, [onStatus, boardSource]);
   const boardMatrix = useMemo(
     () => placeInCase(caseModel, boardModel, "motherboard", boardModel),
     [caseModel, boardModel],
@@ -83,7 +101,7 @@ export function BuildScene({ lowDetail }: SceneOptions) {
     };
   }, [caseModel]);
 
-  const shared = { caseModel, boardModel, lowDetail };
+  const shared = { caseModel, boardModel, lowDetail, onStatus };
 
   return (
     <>
