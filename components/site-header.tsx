@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PART_SECTIONS } from "@/lib/parts/routes";
 
 export function SiteHeader() {
   return (
@@ -6,8 +7,23 @@ export function SiteHeader() {
       <Link href="/" className="text-sm font-semibold tracking-tight">
         Build Wars
       </Link>
-      <nav className="text-muted-foreground flex items-center gap-4 text-sm">
-        <Link href="/build" className="hover:text-foreground">
+      <nav
+        aria-label="Main"
+        className="text-muted-foreground flex items-center gap-4 overflow-x-auto text-sm whitespace-nowrap"
+      >
+        {Object.values(PART_SECTIONS).map((section) => (
+          <Link
+            key={section.path}
+            href={section.path}
+            className="hover:text-foreground hidden md:inline"
+          >
+            {section.title}
+          </Link>
+        ))}
+        <Link href="/how-scores-work" className="hover:text-foreground hidden sm:inline">
+          How scores work
+        </Link>
+        <Link href="/build" className="text-foreground font-medium">
           Build a PC
         </Link>
       </nav>
