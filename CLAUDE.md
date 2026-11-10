@@ -72,18 +72,19 @@ are not sure about. `cacheComponents` is on in `next.config.ts`.
 
 ## Commands
 
-| Command                                             | Purpose                                                                                     |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `pnpm dev`                                          | Dev server                                                                                  |
-| `pnpm check`                                        | Lint + typecheck + unit tests. Must pass before every commit.                               |
-| `pnpm lint` / `pnpm typecheck` / `pnpm test`        | Individually                                                                                |
-| `pnpm format`                                       | Prettier write                                                                              |
-| `pnpm build`                                        | Production build                                                                            |
-| `pnpm test:e2e`                                     | Playwright (builds and serves on port 3100). On this Mac: `PW_CHANNEL=chrome pnpm test:e2e` |
-| `pnpm models:import <file.glb> --category … --id …` | Validate, compress and store a 3D model; prints its manifest entry                          |
-| `pnpm models:sample`                                | Write a small standards-compliant sample GPU model for testing                              |
-| `pnpm db:up` / `pnpm db:down`                       | Local Postgres in Docker (port 55433)                                                       |
-| `pnpm db:generate` / `pnpm db:migrate`              | Drizzle migrations                                                                          |
+| Command                                                                    | Purpose                                                                                        |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                                                 | Dev server                                                                                     |
+| `pnpm check`                                                               | Lint + typecheck + unit tests. Must pass before every commit.                                  |
+| `pnpm lint` / `pnpm typecheck` / `pnpm test`                               | Individually                                                                                   |
+| `pnpm format`                                                              | Prettier write                                                                                 |
+| `pnpm build`                                                               | Production build                                                                               |
+| `pnpm test:e2e`                                                            | Playwright (builds and serves on port 3100). On this Mac: `PW_CHANNEL=chrome pnpm test:e2e`    |
+| `pnpm models:import <file.glb> --category … --id …`                        | Validate, compress and store a 3D model; prints its manifest entry                             |
+| `pnpm models:align <in.glb> <out.glb> --rotate … --length-mm … --anchor …` | Rotate, scale and re-origin a foreign model into the standard's frame and add attachment nodes |
+| `pnpm models:sample`                                                       | Write a small standards-compliant sample GPU model for testing                                 |
+| `pnpm db:up` / `pnpm db:down`                                              | Local Postgres in Docker (port 55433)                                                          |
+| `pnpm db:generate` / `pnpm db:migrate`                                     | Drizzle migrations                                                                             |
 
 ## How work is organised
 

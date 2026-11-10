@@ -1,6 +1,7 @@
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { ClientCatalog } from "@/lib/build";
-import type { Catalog, ModelEntry } from "@/lib/schemas";
+import { ModelManifestSchema, type Catalog, type ModelEntry } from "@/lib/schemas";
 import { loadCatalog } from "./load";
 
 /**
@@ -26,7 +27,33 @@ export async function getClientCatalog(): Promise<ClientCatalog> {
   return { cpus, gpu_chips, gpu_boards, chipsets, motherboards, ram_kits, psus };
 }
 
-/** 3D models the public site may use: only entries approved on the model test page. */
+/**
+ * Models for trying out on this machine only: `data/models/manifest.local.json`, same format as
+ * the manifest, git-ignored, with files under `public/models/`. Missing file = none.
+ */
+export async function getLocalModels(): Promise<ModelEntry[]> {
+  "use cache";
+  let text: string;
+  try {
+    text = await readFile(path.join(process.cwd(), "data/models/manifest.local.json"), "utf8");
+  } catch {
+    return [];
+  }
+  const parsed = ModelManifestSchema.safeParse(JSON.parse(text));
+  if (!parsed.success) {
+    throw new Error(`data/models/manifest.local.json is invalid: ${parsed.error.message}`);
+  }
+  return parsed.data;
+}
+
+/**
+ * 3D models the configurator scene may use: the manifest's entries approved on the model test
+ * page, plus, under `pnpm dev` only, the local try-out models (which never ship: a production
+ * build ignores them).
+ */
 export async function getPublicModels(): Promise<ModelEntry[]> {
-  return (await getCatalog()).models.filter((model) => model.verified);
+  const published = (await getCatalog()).models.filter((model) => model.verified);
+  if (process.env.NODE_ENV !== "development") return published;
+  const local = (await getLocalModels()).map((model) => ({ ...model, verified: true }));
+  return [...local, ...published];
 }

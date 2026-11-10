@@ -50,3 +50,4 @@ next-env.d.ts
 
 # raw 3D model files waiting for `pnpm models:import` (never committed)
 /models-src/
+/data/models/manifest.local.json

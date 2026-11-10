@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { ModelTest } from "@/components/dev/model-test";
-import { getCatalog } from "@/lib/catalog/server";
+import { getCatalog, getLocalModels } from "@/lib/catalog/server";
 
 export const metadata: Metadata = {
   title: "Model test",
@@ -24,7 +24,7 @@ async function ModelTestLoader() {
   return (
     <ModelTest
       catalog={{ cpus, gpu_chips, gpu_boards, chipsets, motherboards, ram_kits, psus }}
-      manifest={models}
+      manifest={[...(await getLocalModels()), ...models]}
     />
   );
 }

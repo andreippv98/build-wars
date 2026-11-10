@@ -162,6 +162,21 @@ build order (v1 code). Milestone 9 (real catalog data) is done by the owner by h
   manifest entry was removed. The manifest is empty: every part is parametric today.
 - **Static image of a build for share pages** (plan, milestone 7) is not built yet.
 
+### Trying a real model locally (2026-11-10)
+
+- **Drop folder:** raw model files go in `models-src/` (git-ignored).
+- **`pnpm models:align`** (`lib/models/align.ts`) fits a foreign `.glb` to the standard without
+  editing geometry: rotate, scale to a length, move an anchor to the origin, add nodes.
+- **Local-only manifest:** `data/models/manifest.local.json` (git-ignored, same format). Its
+  entries are used by the `/build` scene under `pnpm dev` only and listed on `/dev/models`; a
+  production build ignores the file, so try-out models cannot ship by accident.
+- **First try-out:** an MSI RTX 5070 Ventus 3X OC model (Sketchfab, author darky.vip21,
+  CC-BY-4.0 per the file's own metadata) aligned with
+  `--rotate 90,0,-90 --length-mm 303 --anchor min+12,max,min+8 --add-node mount_pcie`, imported
+  as `gpu/msi-rtx-5070-ventus-3x-oc.glb`, shown for the new sample catalog part
+  `msi-ventus-3x-rtx-5070-oc`. Owner: testing only, not to be published. It carries MSI logos in
+  its textures, which the plan rules out for the public site.
+
 ### Owner decisions (2026-11-10)
 
 - **Two verification flags.** `verified` = specs checked against the manufacturer's page (every
