@@ -66,7 +66,39 @@ build order (v1 code). Milestone 9 (real catalog data) is done by the owner by h
 - **Subagent definitions** load at session start. In the session that created them, delegate to
   `general-purpose` with the model set and the definition file named in the brief.
 
+### Milestone 3 (engine)
+
+- **Shape:** `lib/engine` exports `estimatePower`, `scoreBuild`, `checkCompatibility` and
+  `evaluateBuild` (all three at once). Input is a `Build` of resolved part records; the engine
+  never looks ids up. The exact rules are the doc comments on each function.
+- **Score rounding:** `score` is rounded to one decimal (canonical, for storing and ranking);
+  `displayScore` is the whole number the UI shows, and the band comes from it, so the number and
+  the label can never disagree.
+- **Score needs CPU + GPU + RAM.** Until then `score` is null and `missing` says what to add.
+  The RAM factor uses the kit's own speed, not the speed the board or CPU limits it to, so the
+  reference build scores exactly 100.
+- **RAM speed factor:** `clamp(1 + 0.15 x (speed / typical - 1), 0.97, 1.03)`. The plan only said
+  "plus or minus 0 to 3%"; 0.15 makes DDR5-7200 and DDR5-4800 hit the two ends.
+- **RAM capacity:** steps at 16 and 32 GB; anything under 16 GB gets the 8 GB factor.
+- **CPU gaming power cap:** 200 W (the plan says "a sensible gaming value"). My guess; tune it.
+- **Baseline power:** motherboard watts only when a board is selected; storage and fans as soon
+  as any part is selected.
+- **12V-2x6 adapters:** an adapter needs `ceil(board power / 150)` PCIe 8-pin plugs, between 2
+  and 4. Too few on the PSU is an error; enough is the "adapter needed" warning.
+- **Extra checks beyond the plan's table:** RAM type is also checked against the CPU (a DDR5 kit
+  with an AM4 CPU is an error even before a board is chosen); the PCIe rule uses the lower of the
+  board's and the CPU's generation; the CPU generation rule is skipped when the socket is already
+  wrong, to avoid two errors for one mistake.
+- **Issue order:** errors, warnings, info; within a severity, rule order.
+
 ## Open questions for the owner
+
+- **RAM speed warning fires on the reference build.** The plan warns when the kit is faster than
+  the CPU's official maximum. Official maximums are conservative (9800X3D: 5600), so nearly every
+  DDR5-6000 build on AM5 shows "will run at 5600", which is also not what happens with EXPO/XMP
+  enabled. Suggestion: keep the warning for the motherboard's limit, and turn the CPU-only case
+  into an info note ("above the CPU's official speed; enable EXPO/XMP"). Implemented as the plan
+  says until you decide.
 
 - One `verified` flag per record covers both specs and `perf_index`, as in the plan's tables. If
   you want specs verified separately from the index (likely during milestone 9), say so and I

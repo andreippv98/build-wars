@@ -1,4 +1,8 @@
-import type { Build, PowerEstimate } from "./types";
+import { ENGINE_CONFIG } from "./config";
+import type { Build, HeadroomStatus, PowerEstimate } from "./types";
+
+/** Decimal precision (6 places) used to strip floating-point noise; not a tunable. */
+const PRECISION = 1e6;
 
 /**
  * Estimates power draw and the recommended PSU. Pure. All numbers come from
@@ -19,6 +23,33 @@ import type { Build, PowerEstimate } from "./types";
  * - An empty build returns all zeros, multiplier = psuMultiplier and headroom null.
  */
 export function estimatePower(build: Build): PowerEstimate {
-  void build;
-  throw new Error("not implemented");
+  const cfg = ENGINE_CONFIG.power;
+  const { cpu, gpu, ram, motherboard, psu } = build;
+
+  const gpuW = gpu ? gpu.board.power_w : 0;
+  const cpuW = cpu ? Math.min(cpu.ppt_w, cfg.cpuGamingCapW) : 0;
+
+  const anyPart = Boolean(cpu || gpu || ram || motherboard || psu);
+  const baselineW =
+    (motherboard ? cfg.motherboardW : 0) +
+    (ram ? cfg.perRamStickW * ram.sticks : 0) +
+    (anyPart ? cfg.storageAndFansW : 0);
+
+  const peakW = gpuW + cpuW + baselineW;
+
+  const spiky = Boolean(gpu?.chip.high_power_spikes) && !psu?.atx3;
+  const multiplier = spiky ? cfg.psuMultiplierSpiky : cfg.psuMultiplier;
+
+  // Round away floating-point noise (500 x 1.3 = 650.0000000000001) before rounding up.
+  const scaled = Math.round(peakW * multiplier * PRECISION) / PRECISION;
+  const recommendedPsuW = Math.ceil(scaled / cfg.psuRoundToW) * cfg.psuRoundToW;
+
+  let headroom: PowerEstimate["headroom"] = null;
+  if (psu && (cpu || gpu || ram || motherboard)) {
+    const status: HeadroomStatus =
+      psu.watts >= recommendedPsuW ? "green" : psu.watts >= peakW ? "amber" : "red";
+    headroom = { status, psuW: psu.watts, spareW: psu.watts - peakW };
+  }
+
+  return { gpuW, cpuW, baselineW, peakW, multiplier, recommendedPsuW, headroom };
 }
