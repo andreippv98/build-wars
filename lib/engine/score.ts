@@ -30,7 +30,8 @@ function bandFor(displayScore: number): ScoreBand {
  *   order cpu, gpu, ram. gpuIndex / cpuIndex / ramFactor are still filled in for the parts present.
  * - score = raw value rounded to 1 decimal; displayScore = Math.round(score); band = first band
  *   whose min <= displayScore.
- * - isEstimate = cpu or gpu chip present with verified false.
+ * - isEstimate = cpu or gpu chip present with perf_index_verified false. The specs flag
+ *   (`verified`) plays no part.
  *
  * The reference build (RTX 5090 at reference clock + Ryzen 7 9800X3D, both index 100, with 32 GB
  * DDR5-6000) must score exactly 100.
@@ -68,7 +69,8 @@ export function scoreBuild(build: Build): ScoreResult {
   if (!ram) missing.push("ram");
 
   const isEstimate =
-    (cpu !== undefined && !cpu.verified) || (gpu !== undefined && !gpu.chip.verified);
+    (cpu !== undefined && !cpu.perf_index_verified) ||
+    (gpu !== undefined && !gpu.chip.perf_index_verified);
 
   if (cpuIndex === null || gpuIndex === null || ramFactor === null) {
     return {

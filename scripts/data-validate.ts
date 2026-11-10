@@ -25,7 +25,14 @@ async function main(): Promise<number> {
     console.log(issues.length > 0 ? "\nCollections:" : "Collections:");
     for (const [name, records] of Object.entries(catalog)) {
       const unverified = records.filter((r: { verified: boolean }) => !r.verified).length;
-      console.log(`  ${name}: ${records.length} records, ${unverified} unverified`);
+      const indices = records.filter(
+        (r) => "perf_index_verified" in r && r.perf_index_verified === false,
+      ).length;
+      const indexNote =
+        name === "cpus" || name === "gpu_chips" ? `, ${indices} with an unverified perf_index` : "";
+      console.log(
+        `  ${name}: ${records.length} records, ${unverified} with unverified specs${indexNote}`,
+      );
     }
   }
   if (issues.length === 0) console.log("Catalog is valid.");

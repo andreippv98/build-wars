@@ -256,19 +256,26 @@ describe("rounding and bands", () => {
 });
 
 describe("isEstimate", () => {
-  const verifiedCpu = makeCpu({ verified: true });
-  const verifiedGpu = makeGpu({}, { verified: true });
+  const verifiedCpu = makeCpu({ perf_index_verified: true });
+  const verifiedGpu = makeGpu({}, { perf_index_verified: true });
 
   it("is true when the cpu is unverified", () => {
     expect(
-      scoreBuild(makeBuild({ cpu: makeCpu({ verified: false }), gpu: verifiedGpu })).isEstimate,
+      scoreBuild(makeBuild({ cpu: makeCpu({ perf_index_verified: false }), gpu: verifiedGpu }))
+        .isEstimate,
     ).toBe(true);
   });
 
   it("is true when the gpu chip is unverified", () => {
     expect(
-      scoreBuild(makeBuild({ cpu: verifiedCpu, gpu: makeGpu({}, { verified: false }) })).isEstimate,
+      scoreBuild(makeBuild({ cpu: verifiedCpu, gpu: makeGpu({}, { perf_index_verified: false }) }))
+        .isEstimate,
     ).toBe(true);
+  });
+
+  it("is true when specs are verified but the index is not", () => {
+    const cpu = makeCpu({ verified: true, perf_index_verified: false });
+    expect(scoreBuild(makeBuild({ cpu, gpu: verifiedGpu })).isEstimate).toBe(true);
   });
 
   it("is false when both are verified", () => {
@@ -279,7 +286,7 @@ describe("isEstimate", () => {
     const r = scoreBuild(
       makeBuild({
         cpu: verifiedCpu,
-        gpu: makeGpu({ verified: false }, { verified: true }),
+        gpu: makeGpu({ verified: false }, { perf_index_verified: true, verified: false }),
         ram: makeRam({ verified: false }),
       }),
     );
@@ -287,6 +294,6 @@ describe("isEstimate", () => {
   });
 
   it("applies to a partial build", () => {
-    expect(scoreBuild({ cpu: makeCpu({ verified: false }) }).isEstimate).toBe(true);
+    expect(scoreBuild({ cpu: makeCpu({ perf_index_verified: false }) }).isEstimate).toBe(true);
   });
 });

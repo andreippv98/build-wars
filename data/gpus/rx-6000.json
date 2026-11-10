@@ -15,6 +15,7 @@
       "pcie_lanes": 16,
       "high_power_spikes": true,
       "perf_index": 40,
+      "perf_index_verified": false,
       "source_notes": "PLACEHOLDER seed data: specs written from memory, not checked against the manufacturer's page; perf_index is a fake placeholder, not a benchmark.",
       "verified": false
     },
@@ -33,6 +34,7 @@
       "pcie_lanes": 8,
       "high_power_spikes": false,
       "perf_index": 15,
+      "perf_index_verified": false,
       "source_notes": "PLACEHOLDER seed data: specs written from memory, not checked against the manufacturer's page; perf_index is a fake placeholder, not a benchmark.",
       "verified": false
     }
@@ -47,6 +49,7 @@
       "model": "Radeon RX 6800 XT Reference",
       "boost_mhz": 2250,
       "power_w": 300,
+      "conn_6pin": 0,
       "conn_8pin": 2,
       "conn_12v2x6": 0,
       "length_mm": 267,
@@ -65,6 +68,7 @@
       "model": "Nitro+ RX 6800 XT",
       "boost_mhz": 2360,
       "power_w": 330,
+      "conn_6pin": 0,
       "conn_8pin": 2,
       "conn_12v2x6": 0,
       "length_mm": 320,
@@ -83,6 +87,7 @@
       "model": "Challenger RX 6600",
       "boost_mhz": 2589,
       "power_w": 132,
+      "conn_6pin": 0,
       "conn_8pin": 1,
       "conn_12v2x6": 0,
       "length_mm": 244,
@@ -101,6 +106,7 @@
       "model": "Fighter RX 6600",
       "boost_mhz": 2589,
       "power_w": 132,
+      "conn_6pin": 0,
       "conn_8pin": 1,
       "conn_12v2x6": 0,
       "length_mm": 200,

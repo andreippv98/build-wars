@@ -203,7 +203,7 @@ describe("ram_capacity", () => {
 describe("ram_speed", () => {
   const ram7200 = makeRam({ speed_mts: 7200 });
 
-  it("warns when over the board limit only", () => {
+  it("warns when over the board limit", () => {
     const build = makeBuild({
       ram: ram7200,
       cpu: makeCpu({ max_mem_speed: { DDR5: 8000 } }),
@@ -215,7 +215,7 @@ describe("ram_speed", () => {
     expect(issues[0].message).toContain("6400");
   });
 
-  it("warns when over the CPU limit only", () => {
+  it("gives an info note when only over the CPU's official speed", () => {
     const build = makeBuild({
       ram: ram7200,
       cpu: makeCpu({ max_mem_speed: { DDR5: 5600 } }),
@@ -223,12 +223,21 @@ describe("ram_speed", () => {
     });
     const issues = run("ram_speed", build);
     expect(issues).toHaveLength(1);
-    expect(issues[0]).toMatchObject({ severity: "warning", slots: ["ram", "cpu"] });
+    expect(issues[0]).toMatchObject({ severity: "info", slots: ["ram", "cpu"] });
     expect(issues[0].message).toContain("5600");
     expect(issues[0].message).toContain("Test CPU");
   });
 
-  it("names the lower limit when over both", () => {
+  it("gives the CPU info note without a motherboard", () => {
+    const build = makeBuild({
+      ram: ram7200,
+      cpu: makeCpu({ max_mem_speed: { DDR5: 5600 } }),
+      motherboard: undefined,
+    });
+    expect(run("ram_speed", build)[0]).toMatchObject({ severity: "info", slots: ["ram", "cpu"] });
+  });
+
+  it("gives only the board warning when over both", () => {
     const build = makeBuild({
       ram: ram7200,
       cpu: makeCpu({ max_mem_speed: { DDR5: 5600 } }),
@@ -236,18 +245,8 @@ describe("ram_speed", () => {
     });
     const issues = run("ram_speed", build);
     expect(issues).toHaveLength(1);
-    expect(issues[0].slots).toEqual(["ram", "cpu"]);
-    expect(issues[0].message).toContain("5600");
-    expect(issues[0].message).not.toContain("6400");
-  });
-
-  it("names both parts when their limits are equal", () => {
-    const build = makeBuild({
-      ram: ram7200,
-      cpu: makeCpu({ max_mem_speed: { DDR5: 6000 } }),
-      motherboard: makeMotherboard({ max_mem_speed: 6000 }),
-    });
-    expect(run("ram_speed", build)[0].slots).toEqual(["ram", "motherboard", "cpu"]);
+    expect(issues[0]).toMatchObject({ severity: "warning", slots: ["ram", "motherboard"] });
+    expect(issues[0].message).toContain("6400");
   });
 
   it("ignores a CPU with no entry for the RAM type", () => {
@@ -259,7 +258,7 @@ describe("ram_speed", () => {
     expect(run("ram_speed", build)).toEqual([]);
   });
 
-  it("is silent exactly at the limit", () => {
+  it("is silent exactly at both limits", () => {
     const build = makeBuild({
       ram: makeRam({ speed_mts: 6000 }),
       cpu: makeCpu({ max_mem_speed: { DDR5: 6000 } }),
@@ -268,26 +267,9 @@ describe("ram_speed", () => {
     expect(run("ram_speed", build)).toEqual([]);
   });
 
-  it("works with only a board, or only a CPU", () => {
-    const boardOnly = makeBuild({
-      ram: ram7200,
-      cpu: undefined,
-      motherboard: makeMotherboard({ max_mem_speed: 6400 }),
-    });
-    expect(run("ram_speed", boardOnly)).toHaveLength(1);
-    const cpuOnly = makeBuild({
-      ram: ram7200,
-      motherboard: undefined,
-      cpu: makeCpu({ max_mem_speed: { DDR5: 5600 } }),
-    });
-    expect(run("ram_speed", cpuOnly)).toHaveLength(1);
-  });
-
-  it("is silent without ram, or with neither board nor cpu", () => {
+  it("is silent without RAM, and with RAM alone", () => {
     expect(run("ram_speed", makeBuild({ ram: undefined }))).toEqual([]);
-    expect(
-      run("ram_speed", makeBuild({ ram: ram7200, cpu: undefined, motherboard: undefined })),
-    ).toEqual([]);
+    expect(run("ram_speed", { ram: ram7200 })).toEqual([]);
   });
 });
 
@@ -578,5 +560,52 @@ describe("ordering", () => {
     expect(rules).toEqual(["ram_sticks", "ram_capacity", "display_output", "psu_wattage"]);
     const positions = rules.map((r) => RULE_IDS.indexOf(r));
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
+  });
+});
+
+describe("gpu_power_connectors: 6-pin", () => {
+  const card = (conn_6pin: number, conn_8pin: number) =>
+    makeGpu({ conn_6pin, conn_8pin, conn_12v2x6: 0 });
+
+  it("feeds a 6-pin socket from a 6-pin-only plug", () => {
+    const build = makeBuild({
+      gpu: card(1, 0),
+      psu: makePsu({ pcie_6pin_count: 1, pcie_8pin_count: 0 }),
+    });
+    expect(run("gpu_power_connectors", build)).toEqual([]);
+  });
+
+  it("feeds a 6-pin socket from a spare 8-pin (6+2) plug", () => {
+    const build = makeBuild({
+      gpu: card(1, 1),
+      psu: makePsu({ pcie_6pin_count: 0, pcie_8pin_count: 2 }),
+    });
+    expect(run("gpu_power_connectors", build)).toEqual([]);
+  });
+
+  it("errors when 6-pin and 8-pin sockets together need more plugs than the PSU has", () => {
+    const build = makeBuild({
+      gpu: card(1, 2),
+      psu: makePsu({ pcie_6pin_count: 0, pcie_8pin_count: 2 }),
+    });
+    const issues = run("gpu_power_connectors", build);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ severity: "error", slots: ["gpu", "psu"] });
+  });
+
+  it("does not let a 6-pin-only plug feed an 8-pin socket", () => {
+    const build = makeBuild({
+      gpu: card(0, 1),
+      psu: makePsu({ pcie_6pin_count: 2, pcie_8pin_count: 0 }),
+    });
+    expect(run("gpu_power_connectors", build)[0]?.severity).toBe("error");
+  });
+
+  it("uses 6-pin-only plugs first and 8-pin plugs for the rest", () => {
+    const build = makeBuild({
+      gpu: card(2, 0),
+      psu: makePsu({ pcie_6pin_count: 1, pcie_8pin_count: 1 }),
+    });
+    expect(run("gpu_power_connectors", build)).toEqual([]);
   });
 });

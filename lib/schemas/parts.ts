@@ -53,11 +53,17 @@ const year = z.number().int().min(2018).max(2100);
 /** Relative performance index. Anchors: Ryzen 7 9800X3D = 100 (CPU), RTX 5090 = 100 (GPU chip). */
 const perfIndex = z.number().positive().max(400);
 
+/**
+ * On CPUs and GPU chips: `perf_index` was entered from real review averages (sources in
+ * `source_notes`). False = placeholder or estimate; the UI shows an "estimate" badge.
+ */
+const perfIndexVerified = z.boolean();
+
 /** Fields every catalog record carries. */
 const provenance = {
   /** Where the specs (and index, if any) came from. */
   source_notes: z.string().min(1),
-  /** False until checked against the manufacturer's page / entered from real review averages. */
+  /** Specs checked against the manufacturer's page. Says nothing about `perf_index`. */
   verified: z.boolean(),
 };
 
@@ -88,6 +94,7 @@ export const CpuSchema = z.strictObject({
   max_mem_speed: z.partialRecord(MemTypeSchema, posInt),
   pcie_gen: pcieGen,
   perf_index: perfIndex,
+  perf_index_verified: perfIndexVerified,
   ...provenance,
 });
 export type Cpu = z.infer<typeof CpuSchema>;
@@ -113,6 +120,7 @@ export const GpuChipSchema = z.strictObject({
   /** Known for big transient power spikes (e.g. RTX 3080/3090): raises the PSU multiplier. */
   high_power_spikes: z.boolean(),
   perf_index: perfIndex,
+  perf_index_verified: perfIndexVerified,
   ...provenance,
 });
 export type GpuChip = z.infer<typeof GpuChipSchema>;
@@ -131,6 +139,9 @@ export const GpuBoardSchema = z.strictObject({
   boost_mhz: posInt,
   /** Board power / power limit in watts (this board, not the reference). */
   power_w: posInt,
+  /** PCIe 6-pin power connectors on the card. */
+  conn_6pin: nonNegInt,
+  /** PCIe 8-pin power connectors on the card. */
   conn_8pin: nonNegInt,
   /** 12VHPWR or 12V-2x6 connectors. */
   conn_12v2x6: nonNegInt,
@@ -252,6 +263,9 @@ export const PsuSchema = z.strictObject({
   atx3: z.boolean(),
   /** 8-pin EPS CPU power connectors. */
   eps_count: nonNegInt,
+  /** 6-pin-only PCIe plugs. */
+  pcie_6pin_count: nonNegInt,
+  /** 8-pin (6+2) PCIe plugs; each can also feed a 6-pin socket. */
   pcie_8pin_count: nonNegInt,
   /** Native 12VHPWR / 12V-2x6 connectors. */
   conn_12v2x6_count: nonNegInt,

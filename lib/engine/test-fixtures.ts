@@ -31,6 +31,7 @@ export function makeCpu(overrides: Partial<Cpu> = {}): Cpu {
     max_mem_speed: { DDR5: 6000 },
     pcie_gen: 5,
     perf_index: 100,
+    perf_index_verified: false,
     ...provenance,
     ...overrides,
   };
@@ -52,6 +53,7 @@ export function makeGpuChip(overrides: Partial<GpuChip> = {}): GpuChip {
     pcie_lanes: 16,
     high_power_spikes: false,
     perf_index: 100,
+    perf_index_verified: false,
     ...provenance,
     ...overrides,
   };
@@ -67,6 +69,7 @@ export function makeGpuBoard(overrides: Partial<GpuBoard> = {}): GpuBoard {
     model: "Test Chip Reference",
     boost_mhz: 2000,
     power_w: 300,
+    conn_6pin: 0,
     conn_8pin: 0,
     conn_12v2x6: 1,
     length_mm: 300,
@@ -130,6 +133,7 @@ export function makePsu(overrides: Partial<Psu> = {}): Psu {
     efficiency: "gold",
     atx3: true,
     eps_count: 2,
+    pcie_6pin_count: 0,
     pcie_8pin_count: 4,
     conn_12v2x6_count: 1,
     modular: "full",

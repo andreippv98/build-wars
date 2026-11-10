@@ -12,7 +12,8 @@ status, decisions and open questions; read it when resuming.
 1. **Never invent benchmark numbers.** Seed data uses clearly fake placeholder `perf_index` values
    with `verified: false`. Real values are entered by the site owner by hand, with sources.
 2. Specs written from memory are also `verified: false` until checked against the manufacturer's
-   page. Every catalog record carries `source_notes` and `verified`.
+   page. Every catalog record carries `source_notes` and `verified` (specs). CPUs and GPU chips
+   also carry `perf_index_verified` (the index); the two flags are independent.
 3. `lib/engine` is pure: no database, network, Next.js, React or Three.js imports. ESLint enforces
    this. It must run unchanged in the browser and on the server.
 4. Every compatibility rule and every score or power formula change needs a unit test.

@@ -21,6 +21,7 @@ const chip = (id: string) => ({
   pcie_lanes: 16,
   high_power_spikes: false,
   perf_index: 10,
+  perf_index_verified: false,
   ...provenance,
 });
 
@@ -32,6 +33,7 @@ const board = (id: string, chipId: string) => ({
   model: id,
   boost_mhz: 2000,
   power_w: 150,
+  conn_6pin: 0,
   conn_8pin: 1,
   conn_12v2x6: 0,
   length_mm: 250,
@@ -50,6 +52,7 @@ const psu = {
   efficiency: "gold",
   atx3: true,
   eps_count: 2,
+  pcie_6pin_count: 0,
   pcie_8pin_count: 4,
   conn_12v2x6_count: 1,
   modular: "full",

@@ -101,34 +101,30 @@ const ramCapacity: Rule = ({ ram, motherboard }) => {
 };
 
 const ramSpeed: Rule = ({ cpu, ram, motherboard }) => {
-  if (!ram || (!cpu && !motherboard)) return [];
-  const limits: { slot: "cpu" | "motherboard"; speed: number; name: string }[] = [];
-  if (motherboard) {
-    limits.push({
-      slot: "motherboard",
-      speed: motherboard.max_mem_speed,
-      name: boardName(motherboard),
-    });
+  if (!ram) return [];
+  if (motherboard && ram.speed_mts > motherboard.max_mem_speed) {
+    return [
+      {
+        rule: "ram_speed",
+        severity: "warning",
+        message: `This kit is ${ram.type}-${ram.speed_mts}, but the ${boardName(motherboard)} supports up to ${motherboard.max_mem_speed} MT/s. It will run at ${motherboard.max_mem_speed}.`,
+        slots: ["ram", "motherboard"],
+      },
+    ];
   }
   const cpuLimit = cpu?.max_mem_speed[ram.type];
-  if (cpu && cpuLimit !== undefined) {
-    limits.push({ slot: "cpu", speed: cpuLimit, name: cpu.name });
+  if (cpu && cpuLimit !== undefined && ram.speed_mts > cpuLimit) {
+    return [
+      {
+        rule: "ram_speed",
+        severity: "info",
+        message: `This kit is ${ram.type}-${ram.speed_mts}, above the ${cpu.name}'s official ${cpuLimit} MT/s. Turn on EXPO or XMP in the BIOS to run it at full speed.`,
+        slots: ["ram", "cpu"],
+      },
+    ];
   }
-  if (limits.length === 0) return [];
-  const lowest = Math.min(...limits.map((l) => l.speed));
-  if (ram.speed_mts <= lowest) return [];
-  const setters = limits.filter((l) => l.speed === lowest);
-  const names = setters.map((l) => `the ${l.name}`).join(" and ");
-  return [
-    {
-      rule: "ram_speed",
-      severity: "warning",
-      message: `This kit is ${ram.type}-${ram.speed_mts}, but ${names} ${setters.length === 1 ? "supports" : "support"} up to ${lowest} MT/s. It will run at ${lowest}.`,
-      slots: ["ram", ...setters.map((l) => l.slot)],
-    },
-  ];
+  return [];
 };
-
 const displayOutput: Rule = ({ cpu, gpu }) => {
   if (!cpu || gpu || cpu.igpu) return [];
   return [
@@ -176,7 +172,8 @@ const gpuPowerConnectors: Rule = ({ gpu, psu }) => {
     adapterMax8pin,
     Math.max(adapterMin8pin, Math.ceil(board.power_w / wattsPer8pin)),
   );
-  const needed8pin = board.conn_8pin + adapters * perAdapter;
+  const sixFrom8 = Math.max(0, board.conn_6pin - psu.pcie_6pin_count);
+  const needed8pin = board.conn_8pin + adapters * perAdapter + sixFrom8;
   const gpuName = boardName(board);
   const psuName = boardName(psu);
   if (psu.pcie_8pin_count < needed8pin) {
@@ -185,7 +182,7 @@ const gpuPowerConnectors: Rule = ({ gpu, psu }) => {
       {
         rule: "gpu_power_connectors",
         severity: "error",
-        message: `The ${gpuName} needs ${needed8pin} PCIe 8-pin plugs${via}, but the ${psuName} has only ${psu.pcie_8pin_count}. Choose a PSU with more PCIe connectors.`,
+        message: `The ${gpuName} needs ${needed8pin} of the PSU's PCIe 8-pin (6+2) plugs${via}, but the ${psuName} has only ${psu.pcie_8pin_count}. Choose a PSU with more PCIe connectors.`,
         slots: ["gpu", "psu"],
       },
     ];
@@ -276,10 +273,12 @@ const RULES: Rule[] = [
  *
  *  ram_capacity (ram + board): ram.capacity_gb > board.max_mem_gb -> error.
  *
- *  ram_speed (ram + board and/or cpu): limits are board.max_mem_speed and
- *    cpu.max_mem_speed[ram.type] (ignored when the CPU has no entry for that type).
- *    ram.speed_mts > lowest applicable limit -> one warning that names the lower speed and
- *    which part(s) set it. Slots: ram plus the limiting part(s).
+ *  ram_speed (ram + board and/or cpu):
+ *    ram.speed_mts > board.max_mem_speed -> warning: the kit will run at the board's maximum.
+ *    Slots: [ram, motherboard].
+ *    Otherwise, ram.speed_mts > cpu.max_mem_speed[ram.type] (ignored when the CPU has no entry
+ *    for that type) -> info: above the CPU's official speed, needs EXPO / XMP enabled.
+ *    Slots: [ram, cpu]. Never both: the board warning wins.
  *
  *  display_output (cpu, no gpu): cpu.igpu false -> error [cpu, gpu].
  *
@@ -289,7 +288,9 @@ const RULES: Rule[] = [
  *  gpu_power_connectors (gpu + psu), numbers from ENGINE_CONFIG.connectors:
  *    adapters = max(0, board.conn_12v2x6 - psu.conn_12v2x6_count)
  *    perAdapter = clamp(ceil(board.power_w / wattsPer8pin), adapterMin8pin, adapterMax8pin)
- *    needed8pin = board.conn_8pin + adapters x perAdapter
+ *    A PSU 8-pin (6+2) plug can feed a 6-pin socket; a 6-pin-only plug cannot feed an 8-pin one:
+ *    sixFrom8 = max(0, board.conn_6pin - psu.pcie_6pin_count)
+ *    needed8pin = board.conn_8pin + adapters x perAdapter + sixFrom8
  *    psu.pcie_8pin_count < needed8pin -> error (the PSU can't power this card);
  *    else adapters > 0 -> warning (works with an adapter). Slots: [gpu, psu].
  *

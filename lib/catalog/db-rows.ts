@@ -43,6 +43,7 @@ export function cpuRow(cpu: Cpu): typeof cpus.$inferInsert {
     maxMemSpeed: cpu.max_mem_speed,
     pcieGen: cpu.pcie_gen,
     perfIndex: cpu.perf_index,
+    perfIndexVerified: cpu.perf_index_verified,
     sourceNotes: cpu.source_notes,
     verified: cpu.verified,
   };
@@ -64,6 +65,7 @@ export function gpuChipRow(chip: GpuChip): typeof gpuChips.$inferInsert {
     pcieLanes: chip.pcie_lanes,
     highPowerSpikes: chip.high_power_spikes,
     perfIndex: chip.perf_index,
+    perfIndexVerified: chip.perf_index_verified,
     sourceNotes: chip.source_notes,
     verified: chip.verified,
   };
@@ -80,6 +82,7 @@ export function gpuBoardRow(board: GpuBoard): typeof gpuBoards.$inferInsert {
     model: board.model,
     boostMhz: board.boost_mhz,
     powerW: board.power_w,
+    conn6pin: board.conn_6pin,
     conn8pin: board.conn_8pin,
     conn12v2x6: board.conn_12v2x6,
     lengthMm: board.length_mm,
@@ -148,6 +151,7 @@ export function psuRow(psu: Psu): typeof psus.$inferInsert {
     efficiency: psu.efficiency,
     atx3: psu.atx3,
     epsCount: psu.eps_count,
+    pcie6pinCount: psu.pcie_6pin_count,
     pcie8pinCount: psu.pcie_8pin_count,
     conn12v2x6Count: psu.conn_12v2x6_count,
     modular: psu.modular,

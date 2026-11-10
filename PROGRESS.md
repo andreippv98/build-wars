@@ -91,22 +91,18 @@ build order (v1 code). Milestone 9 (real catalog data) is done by the owner by h
   wrong, to avoid two errors for one mistake.
 - **Issue order:** errors, warnings, info; within a severity, rule order.
 
+### Owner decisions (2026-11-10)
+
+- **Two verification flags.** `verified` = specs checked against the manufacturer's page (every
+  record). `perf_index_verified` = index entered from real review averages (CPUs and GPU chips).
+  The score's "estimate" badge follows `perf_index_verified` only.
+- **6-pin connectors.** GPU boards have `conn_6pin`, PSUs have `pcie_6pin_count` (6-pin-only
+  plugs). A PSU 8-pin (6+2) plug can feed a 6-pin socket; a 6-pin-only plug cannot feed an 8-pin
+  socket. All sample records have 0.
+- **RAM speed.** Over the motherboard's limit is a warning ("will run at X"). Over only the
+  CPU's official speed is an info note ("turn on EXPO or XMP"). The board warning wins if both.
+- **Remote:** `git@github.com:andreippv98/build-wars.git`; push `main` after each milestone commit.
+
 ## Open questions for the owner
 
-- **RAM speed warning fires on the reference build.** The plan warns when the kit is faster than
-  the CPU's official maximum. Official maximums are conservative (9800X3D: 5600), so nearly every
-  DDR5-6000 build on AM5 shows "will run at 5600", which is also not what happens with EXPO/XMP
-  enabled. Suggestion: keep the warning for the motherboard's limit, and turn the CPU-only case
-  into an info note ("above the CPU's official speed; enable EXPO/XMP"). Implemented as the plan
-  says until you decide.
-
-- One `verified` flag per record covers both specs and `perf_index`, as in the plan's tables. If
-  you want specs verified separately from the index (likely during milestone 9), say so and I
-  will split it into two flags.
-- The plan counts only 8-pin and 12V-2x6 GPU connectors. Cards with 6-pin connectors have nowhere
-  to record them; fine for now, worth deciding before real data entry.
-
-- No git remote yet. CI only runs once the repo is pushed to GitHub; say when and where.
-- Needed later, not now: Google OAuth client and an email provider for magic links (milestone 7),
-  object storage keys for `models:import` uploads (milestone 5; will be built to run without
-  upload until keys exist), hosted Postgres and Vercel (launch).
+None.

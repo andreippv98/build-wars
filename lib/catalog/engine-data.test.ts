@@ -55,6 +55,7 @@ describe("engine on the sample catalog", () => {
     expect(result.score.score).toBe(100);
     expect(result.score.band?.label).toBe("Enthusiast");
     expect(result.hasErrors).toBe(false);
+    expect(result.issues.filter((i) => i.severity !== "info")).toEqual([]);
     expect(result.power.headroom?.status).toBe("green");
   });
 

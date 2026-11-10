@@ -33,6 +33,7 @@ const cpu: Catalog["cpus"][number] = {
   max_mem_speed: { DDR5: 5200 },
   pcie_gen: 5,
   perf_index: 11,
+  perf_index_verified: false,
   ...provenance,
 };
 
@@ -58,6 +59,7 @@ describe("row mappers", () => {
       maxMemSpeed: { DDR5: 5200 },
       pcieGen: 5,
       perfIndex: 11,
+      perfIndexVerified: false,
       sourceNotes: "fake test data",
       verified: false,
     });
@@ -79,6 +81,7 @@ describe("row mappers", () => {
       pcie_lanes: 8,
       high_power_spikes: true,
       perf_index: 33,
+      perf_index_verified: false,
       ...provenance,
     });
     expect(row).toMatchObject({
@@ -90,6 +93,7 @@ describe("row mappers", () => {
       pcieLanes: 8,
       highPowerSpikes: true,
       perfIndex: 33,
+      perfIndexVerified: false,
       sourceNotes: "fake test data",
     });
   });
@@ -103,6 +107,7 @@ describe("row mappers", () => {
       model: "Fake Board",
       boost_mhz: 2000,
       power_w: 150,
+      conn_6pin: 0,
       conn_8pin: 1,
       conn_12v2x6: 2,
       length_mm: 250,
@@ -114,6 +119,7 @@ describe("row mappers", () => {
     expect(gpuBoardRow(base)).toMatchObject({
       chipId: "c",
       series: null,
+      conn6pin: 0,
       conn8pin: 1,
       conn12v2x6: 2,
       lengthMm: 250,
@@ -203,6 +209,7 @@ describe("row mappers", () => {
         efficiency: "gold",
         atx3: true,
         eps_count: 2,
+        pcie_6pin_count: 0,
         pcie_8pin_count: 4,
         conn_12v2x6_count: 1,
         modular: "semi",
@@ -212,6 +219,7 @@ describe("row mappers", () => {
       watts: 750,
       atx3: true,
       epsCount: 2,
+      pcie6pinCount: 0,
       pcie8pinCount: 4,
       conn12v2x6Count: 1,
       modular: "semi",

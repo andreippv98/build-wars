@@ -102,7 +102,7 @@ export type ScoreResult = {
   cpuIndex: number | null;
   /** R: capacity factor x speed factor. Null without RAM. Not rounded. */
   ramFactor: number | null;
-  /** True when the CPU or the GPU chip that feed the score is `verified: false`. */
+  /** True when the CPU or the GPU chip feeding the score has `perf_index_verified: false`. */
   isEstimate: boolean;
   /** Which of cpu / gpu / ram are still missing for a score, in that order. */
   missing: BuildSlot[];

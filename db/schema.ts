@@ -44,6 +44,7 @@ export const cpus = pgTable("cpus", {
   maxMemSpeed: jsonb("max_mem_speed").$type<Cpu["max_mem_speed"]>().notNull(),
   pcieGen: integer("pcie_gen").notNull(),
   perfIndex: real("perf_index").notNull(),
+  perfIndexVerified: boolean("perf_index_verified").notNull().default(false),
   ...provenance,
 });
 
@@ -62,6 +63,7 @@ export const gpuChips = pgTable("gpu_chips", {
   pcieLanes: integer("pcie_lanes").notNull(),
   highPowerSpikes: boolean("high_power_spikes").notNull(),
   perfIndex: real("perf_index").notNull(),
+  perfIndexVerified: boolean("perf_index_verified").notNull().default(false),
   ...provenance,
 });
 
@@ -78,6 +80,7 @@ export const gpuBoards = pgTable(
     model: text("model").notNull(),
     boostMhz: integer("boost_mhz").notNull(),
     powerW: integer("power_w").notNull(),
+    conn6pin: integer("conn_6pin").notNull().default(0),
     conn8pin: integer("conn_8pin").notNull(),
     conn12v2x6: integer("conn_12v2x6").notNull(),
     lengthMm: integer("length_mm").notNull(),
@@ -163,6 +166,7 @@ export const psus = pgTable("psus", {
   efficiency: text("efficiency").notNull(),
   atx3: boolean("atx3").notNull(),
   epsCount: integer("eps_count").notNull(),
+  pcie6pinCount: integer("pcie_6pin_count").notNull().default(0),
   pcie8pinCount: integer("pcie_8pin_count").notNull(),
   conn12v2x6Count: integer("conn_12v2x6_count").notNull(),
   modular: text("modular").notNull(),
