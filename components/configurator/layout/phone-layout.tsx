@@ -14,7 +14,7 @@ import { SLOT_LABELS, partName, type SlotPart } from "@/lib/build";
 import { BUILD_SLOTS, type BuildSlot } from "@/lib/schemas";
 import { useConfigurator } from "../configurator-provider";
 import { PartPicker } from "../part-picker";
-import { ScenePlaceholder } from "../scene-placeholder";
+import { Scene } from "@/components/scene/scene";
 import { CompactScore } from "../summary/compact-score";
 import { SummaryPanel } from "../summary-panel";
 
@@ -60,7 +60,7 @@ export function PhoneLayout() {
   return (
     <div data-testid="configurator" data-layout="phone" className="flex flex-1 flex-col">
       <div className="h-[45dvh] shrink-0">
-        <ScenePlaceholder onSlotClick={(slot) => setActiveSlot(slot)} />
+        <Scene lowDetail onSlotClick={(slot) => setActiveSlot(slot)} />
       </div>
 
       <ul className="flex flex-col gap-2 p-3 pb-[calc(5rem+env(safe-area-inset-bottom))]">

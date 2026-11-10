@@ -3,7 +3,7 @@
 import { useIsDesktop } from "./layout/use-is-desktop";
 import { PhoneLayout } from "./layout/phone-layout";
 import { PartPicker } from "./part-picker";
-import { ScenePlaceholder } from "./scene-placeholder";
+import { Scene } from "@/components/scene/scene";
 import { SummaryPanel } from "./summary-panel";
 
 /** Three columns on desktop; scene + slot list + bottom sheets + sticky score bar on phones. */
@@ -22,7 +22,7 @@ export function ConfiguratorLayout() {
         <PartPicker />
       </aside>
       <main className="flex min-h-0 min-w-0 flex-col">
-        <ScenePlaceholder />
+        <Scene />
       </main>
       <aside className="bg-card/60 flex min-h-0 flex-col border-l">
         <SummaryPanel />

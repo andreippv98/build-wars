@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { ClientCatalog } from "@/lib/build";
-import type { Catalog } from "@/lib/schemas";
+import type { Catalog, ModelEntry } from "@/lib/schemas";
 import { loadCatalog } from "./load";
 
 /**
@@ -24,4 +24,9 @@ export async function getClientCatalog(): Promise<ClientCatalog> {
   const { cpus, gpu_chips, gpu_boards, chipsets, motherboards, ram_kits, psus } =
     await getCatalog();
   return { cpus, gpu_chips, gpu_boards, chipsets, motherboards, ram_kits, psus };
+}
+
+/** 3D models the public site may use: only entries approved on the model test page. */
+export async function getPublicModels(): Promise<ModelEntry[]> {
+  return (await getCatalog()).models.filter((model) => model.verified);
 }

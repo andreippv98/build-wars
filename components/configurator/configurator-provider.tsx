@@ -14,12 +14,14 @@ import {
   type SlotPart,
 } from "@/lib/build";
 import { evaluateBuild, type Build, type BuildEvaluation, type Issue } from "@/lib/engine";
-import type { BuildSlot } from "@/lib/schemas";
+import type { BuildSlot, ModelEntry } from "@/lib/schemas";
 
 /** Everything the configurator's panels and scene share. Read it with `useConfigurator()`. */
 export type ConfiguratorState = {
   /** Lookup tables over the catalog; `index.parts[slot]` lists what can be picked. */
   index: CatalogIndex;
+  /** The 3D model manifest (verified entries only on the public site). */
+  models: readonly ModelEntry[];
   /** Chosen part ids. Mirrors the URL. */
   selection: BuildSelection;
   /** The chosen parts as records. */
@@ -54,9 +56,11 @@ export function useConfigurator(): ConfiguratorState {
 
 export function ConfiguratorProvider({
   catalog,
+  models,
   children,
 }: {
   catalog: ClientCatalog;
+  models: readonly ModelEntry[];
   children: ReactNode;
 }) {
   const index = useMemo(() => indexCatalog(catalog), [catalog]);
@@ -110,6 +114,7 @@ export function ConfiguratorProvider({
     const query = selectionToQuery(selection);
     return {
       index,
+      models,
       selection,
       build,
       evaluation,
@@ -125,6 +130,7 @@ export function ConfiguratorProvider({
     };
   }, [
     index,
+    models,
     selection,
     build,
     evaluation,

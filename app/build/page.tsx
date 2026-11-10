@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Configurator } from "@/components/configurator/configurator";
-import { getClientCatalog } from "@/lib/catalog/server";
+import { getClientCatalog, getPublicModels } from "@/lib/catalog/server";
 
 export const metadata: Metadata = {
   title: "Build a PC",
@@ -10,11 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default async function BuildPage() {
-  const catalog = await getClientCatalog();
+  const [catalog, models] = await Promise.all([getClientCatalog(), getPublicModels()]);
   return (
     // The configurator reads the build from the URL, which only exists in the browser.
     <Suspense fallback={<div className="flex-1" aria-busy="true" />}>
-      <Configurator catalog={catalog} />
+      <Configurator catalog={catalog} models={models} />
     </Suspense>
   );
 }
