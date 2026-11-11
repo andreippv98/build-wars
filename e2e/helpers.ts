@@ -25,3 +25,16 @@ export async function openBuild(page: Page, url = "/build") {
   await page.goto(url);
   await expect(page.getByTestId("configurator")).toBeVisible();
 }
+
+/**
+ * Opens a picker category and waits until it is open. The click is retried: right after a part
+ * is chosen the list above re-lays out (blocked reasons appear and disappear), and a click
+ * computed before that shift can land beside the header.
+ */
+export async function openCategory(page: Page, slot: Slot) {
+  const header = page.getByTestId(`picker-category-${slot}`);
+  await expect(async () => {
+    if ((await header.getAttribute("aria-expanded")) !== "true") await header.click();
+    await expect(header).toHaveAttribute("aria-expanded", "true", { timeout: 1500 });
+  }).toPass({ timeout: 15_000 });
+}

@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
 import {
   BROKEN_URL,
-  openBuild,
   REFERENCE,
   REFERENCE_QUERY,
   REFERENCE_URL,
   SLOTS,
+  openBuild,
+  openCategory,
 } from "../helpers";
 
 test.describe("configurator on desktop", () => {
@@ -26,10 +27,12 @@ test.describe("configurator on desktop", () => {
   });
 
   test("builds the reference PC through the picker", async ({ page }) => {
+    // Five picks, each followed by scene animations: needs more than the default 30 s under load.
+    test.setTimeout(90_000);
     await openBuild(page);
 
     // CPU, using search.
-    await page.getByTestId("picker-category-cpu").click();
+    await openCategory(page, "cpu");
     const count = page.getByTestId("picker-count");
     await expect(count).toHaveText(/^\d+ parts$/);
     const before = Number((await count.innerText()).split(" ")[0]);
@@ -51,7 +54,7 @@ test.describe("configurator on desktop", () => {
       ["psu", REFERENCE.psu],
     ] as const;
     for (const [slot, id] of rest) {
-      await page.getByTestId(`picker-category-${slot}`).click();
+      await openCategory(page, slot);
       const row = page.getByTestId(`picker-row-${id}`);
       await expect(row).toHaveAttribute("data-blocked", "false");
       await row.click();
@@ -83,7 +86,7 @@ test.describe("configurator on desktop", () => {
 
   test("incompatible parts are blocked in the picker", async ({ page }) => {
     await openBuild(page, `/build?cpu=${REFERENCE.cpu}`);
-    await page.getByTestId("picker-category-motherboard").click();
+    await openCategory(page, "motherboard");
     const blocked = page.getByTestId("picker-row-msi-b550-tomahawk");
     await expect(blocked).toHaveAttribute("data-blocked", "true");
     await expect(blocked).toContainText(/socket/i);

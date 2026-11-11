@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { BROKEN_URL, openBuild, REFERENCE, REFERENCE_URL, SLOTS } from "../helpers";
+import { BROKEN_URL, REFERENCE, REFERENCE_URL, SLOTS, openBuild, openCategory } from "../helpers";
 
 const scene = (page: Page) => page.getByTestId("scene");
 
@@ -41,16 +41,16 @@ test.describe("3D scene", () => {
 
   test("opening a picker category focuses that slot", async ({ page }) => {
     const errors = await openScene(page, "/build");
-    await page.getByTestId("picker-category-gpu").click();
+    await openCategory(page, "gpu");
     await expect(scene(page)).toHaveAttribute("data-active-slot", "gpu");
-    await page.getByTestId("picker-category-ram").click();
+    await openCategory(page, "ram");
     await expect(scene(page)).toHaveAttribute("data-active-slot", "ram");
     expect(errors).toEqual([]);
   });
 
   test("hovering a part in the list shows its ghost, leaving clears it", async ({ page }) => {
     const errors = await openScene(page, "/build");
-    await page.getByTestId("picker-category-gpu").click();
+    await openCategory(page, "gpu");
     const row = page.getByTestId(`picker-row-${REFERENCE.gpu}`);
     await row.hover();
     await expect(scene(page)).toHaveAttribute("data-ghost", `gpu:${REFERENCE.gpu}`);
@@ -61,7 +61,7 @@ test.describe("3D scene", () => {
 
   test("choosing a part fills the slot and clears the ghost", async ({ page }) => {
     const errors = await openScene(page, "/build");
-    await page.getByTestId("picker-category-gpu").click();
+    await openCategory(page, "gpu");
     await page.getByTestId(`picker-row-${REFERENCE.gpu}`).click();
     await expect(scene(page)).toHaveAttribute("data-parts", /gpu:/);
     await expect(scene(page)).toHaveAttribute("data-empty", "cpu ram motherboard psu");
