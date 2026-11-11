@@ -162,6 +162,38 @@ build order (v1 code). Milestone 9 (real catalog data) is done by the owner by h
   manifest entry was removed. The manifest is empty: every part is parametric today.
 - **Static image of a build for share pages** (plan, milestone 7) is not built yet.
 
+### Milestone 6 (part pages)
+
+- **Routes:** `/cpu`, `/cpu/<slug>`, `/gpu`, `/gpu/<chip>` (specs + side-by-side comparison of
+  its board models), `/gpu/<chip>/<board>`, `/motherboard`, `/motherboard/<slug>`, `/psu`,
+  `/psu/<slug>`, plus `/how-scores-work`, a real home page, `/sitemap.xml` and `/robots.txt`.
+  The four section index pages are an addition to the plan: crawlers and visitors need a way to
+  reach every part page.
+- **One template:** a part type is a `lib/parts/<type>.ts` (specs, title, lead, description,
+  related selection) plus two thin pages assembling the shared `components/part/*`. The CPU page
+  is the reference.
+- **"Compatible with" lists come from the engine** (`lib/parts/related.ts` calls
+  `checkCompatibility`), so a page cannot disagree with the configurator. PSU lists judge
+  connectors only and say so; wattage depends on the whole build.
+- **Pages are fully prerendered HTML** (`export const instant = false`, `generateStaticParams`),
+  work without JavaScript, and carry `Product` + `BreadcrumbList` JSON-LD (board pages point to
+  their chip with `isVariantOf`). No `offers`, reviews or ratings: the site has no prices.
+- **Unknown part URLs get a real 404 from `proxy.ts`.** Under Cache Components a `notFound()` in
+  the page is sent with status 200 (a soft 404), and `dynamicParams` is not supported. The proxy
+  checks `lib/parts/known-paths.ts`, built from static JSON imports; a test fails if a new
+  `data/gpus/*.json` file is not registered there.
+- **Sitemap is built from the catalog** (`lib/seo/sitemap.ts`), not the database, with no
+  `lastmod` (there is no per-part date). It takes `publicBuildPaths` for milestone 7: the caller
+  must pass public builds only.
+- **Ad space is reserved** by `<AdSlot>` (renders nothing today): below the spec table and in
+  the side column of part pages, at the end of the home and methodology pages. None on `/build`.
+- **`NEXT_PUBLIC_SITE_URL`** sets canonical URLs, the sitemap and JSON-LD; it defaults to
+  `http://localhost:3000`, so it must be set in production.
+- **Methodology page reads every number from `ENGINE_CONFIG`** and computes its worked example
+  on the page, and states that today's index values are placeholders.
+- **Playwright:** 41 tests; workers capped at 4 (2 in CI) because many tests open the WebGL
+  scene and starve each other otherwise.
+
 ### Trying a real model locally (2026-11-10)
 
 - **Drop folder:** raw model files go in `models-src/` (git-ignored).
@@ -193,4 +225,5 @@ build order (v1 code). Milestone 9 (real catalog data) is done by the owner by h
 
 - **Model storage:** Cloudflare R2 or Vercel Blob for `.glb` files, and its keys, when the first
   real model is ready. Nothing needs it until then.
+- **`NEXT_PUBLIC_SITE_URL`:** the production domain, when there is one.
 - **Real models:** none exist. The plan treats them as post-launch; say if you want any before.

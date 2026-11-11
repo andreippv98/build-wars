@@ -11,7 +11,10 @@ test.describe("sitemap and robots", () => {
     expect(body).toContain("/how-scores-work</loc>");
     expect(body).toMatch(/<loc>[^<]*\/gpu\/[^/<]+\/[^/<]+<\/loc>/);
     expect(body).not.toContain("/dev");
-    expect(body).not.toContain("?");
+    // No URL carries a query string (the XML declaration itself contains "?").
+    const locs = [...body.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1]);
+    expect(locs.length).toBeGreaterThan(10);
+    expect(locs.filter((loc) => loc.includes("?"))).toEqual([]);
     expect(body).not.toContain("lastmod");
   });
 
